@@ -10,13 +10,17 @@ interface QuizSectionProps {
   onOpenCertificate: (score: number) => void;
   onEarnStar: () => void;
   initialTopicFilter?: string | null;
+  lastExamScore?: number | null;
+  onSaveExamScore?: (score: number) => void;
 }
 
 export const QuizSection: React.FC<QuizSectionProps> = ({
   studentName,
   onOpenCertificate,
   onEarnStar,
-  initialTopicFilter = null
+  initialTopicFilter = null,
+  lastExamScore = null,
+  onSaveExamScore
 }) => {
   const [quizMode, setQuizMode] = useState<'latihan' | 'ujian'>('latihan');
   const [selectedTopic, setSelectedTopic] = useState<string>(initialTopicFilter || 'all');
@@ -29,10 +33,14 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: number }>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
 
   // Timer for Ujian mode
   const [timerSeconds, setTimerSeconds] = useState(900); // 15 minutes
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+
+  const answeredCount = filteredQuestions.filter((q) => selectedAnswers[q.id] !== undefined).length;
+  const unansweredCount = filteredQuestions.length - answeredCount;
 
   // Sync initial topic filter if changed from parent
   useEffect(() => {
@@ -114,12 +122,24 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
     });
 
     const finalScore = Math.round((correctCount / filteredQuestions.length) * 100);
+    if (onSaveExamScore) {
+      onSaveExamScore(finalScore);
+    }
 
     if (finalScore >= 70) {
       playFanfare();
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
     } else {
       playCorrect();
+    }
+  };
+
+  const handleAttemptSubmit = () => {
+    playClick();
+    if (unansweredCount > 0 && quizMode === 'ujian') {
+      setShowConfirmSubmit(true);
+    } else {
+      handleSubmitExam();
     }
   };
 
@@ -220,6 +240,23 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Last Exam Score Banner (if already taken exam before) */}
+      {lastExamScore !== null && !isSubmitted && (
+        <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left animate-fade-in">
+          <div className="flex items-center gap-2 text-xs font-heading font-semibold text-amber-900 dark:text-amber-200">
+            <span className="text-lg">🏆</span>
+            <span>Biji Ujian Penilaian Harian Paling Anyar:</span>
+            <span className="font-bold text-base text-amber-600 dark:text-amber-400">{lastExamScore}/100</span>
+          </div>
+          <button
+            onClick={() => onOpenCertificate(lastExamScore)}
+            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-heading font-bold text-xs shadow-sm active:scale-95 transition-all cursor-pointer shrink-0"
+          >
+            Deleng / Cetak Sertifikat ➔
+          </button>
+        </div>
+      )}
 
       {/* Topic Filter Selector Bar */}
       <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6">
@@ -426,7 +463,49 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
         </div>
       ) : (
         /* ================= ACTIVE QUESTION SCREEN ================= */
-        <div className="max-w-3xl mx-auto space-y-6">
+        <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6">
+          {/* Question Navigator Grid (1..N) - Quick Jump with Color-Coded Answer Status */}
+          <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 shadow-sm space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-heading font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                <span>Daftar Pitakon:</span>
+                <span className="text-emerald-600 dark:text-emerald-400">
+                  ({answeredCount}/{filteredQuestions.length} Wis Diisi)
+                </span>
+              </span>
+              <span className="text-[11px] text-slate-400 hidden sm:inline">
+                Tutul nomer kanggo mbukak langsung
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+              {filteredQuestions.map((q, idx) => {
+                const isAnswered = selectedAnswers[q.id] !== undefined;
+                const isCurrent = currentIndex === idx;
+                return (
+                  <button
+                    key={q.id}
+                    onClick={() => {
+                      setCurrentIndex(idx);
+                      playClick();
+                    }}
+                    className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl font-heading font-bold text-xs flex items-center justify-center shrink-0 transition-all cursor-pointer min-w-[32px] min-h-[32px] ${
+                      isCurrent
+                        ? 'bg-emerald-600 text-white ring-2 ring-emerald-400 ring-offset-2 scale-105 shadow-md'
+                        : isAnswered
+                        ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700'
+                        : 'bg-slate-50 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                    }`}
+                    title={`Soal nomer ${idx + 1} (${isAnswered ? 'Wis diisi' : 'Durung diisi'})`}
+                    aria-label={`Soal nomer ${idx + 1}`}
+                  >
+                    {idx + 1}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 shadow-xl space-y-6">
             {/* Question Top Bar */}
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/60 pb-4 gap-4">
@@ -440,7 +519,15 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
               </div>
 
               {quizMode === 'ujian' && (
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-heading font-bold border border-amber-500/30">
+                <div
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-heading font-bold border transition-colors ${
+                    timerSeconds < 60
+                      ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/40 animate-pulse'
+                      : timerSeconds < 180
+                      ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/40'
+                      : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                  }`}
+                >
                   <Clock className="w-3.5 h-3.5" />
                   <span>Wektu: {formatTime(timerSeconds)}</span>
                 </div>
@@ -565,13 +652,47 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
                 </button>
               ) : (
                 <button
-                  onClick={handleSubmitExam}
-                  className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-heading font-bold text-xs shadow-md shadow-amber-500/30 active:scale-95 transition-all flex items-center gap-2"
+                  onClick={handleAttemptSubmit}
+                  className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-heading font-bold text-xs shadow-md shadow-amber-500/30 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
                 >
                   <Award className="w-4 h-4" />
                   <span>Kirim & Deleng Rapor</span>
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Unanswered Questions Confirmation Modal */}
+      {showConfirmSubmit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl border border-amber-500/40 space-y-4 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 mx-auto flex items-center justify-center text-3xl shadow-inner">
+              ⚠️
+            </div>
+            <h4 className="font-heading font-bold text-xl text-slate-900 dark:text-white">
+              Isih Ana Soal Sing Durung Diisi!
+            </h4>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-sans leading-relaxed">
+              Kowe durung ngrampungake <strong className="text-rose-600 dark:text-rose-400 font-bold">{unansweredCount} pitakon</strong> saka total {filteredQuestions.length} soal. Yakin arep dikirim saiki?
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <button
+                onClick={() => setShowConfirmSubmit(false)}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-heading font-semibold text-xs hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer"
+              >
+                Terusna Nggarap Soal
+              </button>
+              <button
+                onClick={() => {
+                  setShowConfirmSubmit(false);
+                  handleSubmitExam();
+                }}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-heading font-bold text-xs shadow-md shadow-amber-500/30 transition-all cursor-pointer"
+              >
+                Tetep Kirim Rapor
+              </button>
             </div>
           </div>
         </div>

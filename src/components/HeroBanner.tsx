@@ -6,12 +6,15 @@ import { speakText } from '../lib/speech';
 interface HeroBannerProps {
   setActiveTab: (tab: string) => void;
   studentName: string;
+  onOpenNameModal?: () => void;
 }
 
-export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, studentName }) => {
+export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, studentName, onOpenNameModal }) => {
+  const displayName = studentName.trim() || 'Bocah Pinter';
+
   const handleTeacherGreeting = () => {
     playClick();
-    speakText(`Sugeng rawuh bocah pinter ${studentName}! Ayo sinau basa Jawa bareng Bu Guru Siti kanthi bungah lan teliti!`);
+    speakText(`Sugeng rawuh bocah pinter ${displayName}! Ayo sinau basa Jawa bareng Bu Guru Siti kanthi bungah lan teliti!`);
   };
 
   return (
@@ -37,8 +40,21 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, studentNam
             </h1>
 
             <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
-              Sugeng rawuh, <strong className="text-emerald-600 dark:text-emerald-400">{studentName}</strong>! Ayo
-              nyimak bedane <span className="font-semibold text-slate-800 dark:text-slate-200">Swara A Jejeg lan Miring</span>,
+              Sugeng rawuh,{' '}
+              <button
+                type="button"
+                onClick={onOpenNameModal}
+                className="text-emerald-600 dark:text-emerald-400 font-bold underline decoration-dotted underline-offset-4 hover:opacity-80 transition-opacity cursor-pointer inline-flex items-center gap-1"
+                title="Klik kanggo ngisi utawa ngganti jeneng"
+              >
+                <span>{displayName}</span>
+                {!studentName.trim() && (
+                  <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/40">
+                    ✏️ Isi Jeneng
+                  </span>
+                )}
+              </button>
+              ! Ayo nyimak bedane <span className="font-semibold text-slate-800 dark:text-slate-200">Swara A Jejeg lan Miring</span>,
               ngrakit suku kata, ngenal krama inggil <span className="font-semibold text-slate-800 dark:text-slate-200">anggota awak</span>,
               lan gladhen soal ujian kanthi pembahasan pedagogis jangkep!
             </p>

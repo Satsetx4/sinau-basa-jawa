@@ -4,9 +4,10 @@ import { playClick } from '../lib/sound';
 
 interface FooterProps {
   setActiveTab: (tab: string) => void;
+  onResetProgress?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ setActiveTab }) => {
+export const Footer: React.FC<FooterProps> = ({ setActiveTab, onResetProgress }) => {
   return (
     <footer className="mt-16 border-t border-slate-200 dark:border-slate-800 bg-[#f8f5f0] dark:bg-[#070b14] py-12 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 text-center md:text-left">
@@ -82,9 +83,20 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab }) => {
           </div>
         </div>
 
-        <p className="text-[11px] text-slate-400 dark:text-slate-500 text-center">
-          © {new Date().getFullYear()} Sinau Basa Jawa Kelas 3 SD. Adhedhasar Standar Kurikulum Muatan Lokal Jawa Tengah & D.I. Yogyakarta.
-        </p>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 text-[11px] text-slate-400 dark:text-slate-500">
+          <p className="text-center sm:text-left">
+            © {new Date().getFullYear()} Sinau Basa Jawa Kelas 3 SD. Adhedhasar Standar Kurikulum Muatan Lokal Jawa Tengah & D.I. Yogyakarta.
+          </p>
+          {onResetProgress && (
+            <button
+              onClick={onResetProgress}
+              className="hover:text-rose-500 underline transition-colors cursor-pointer"
+              title="Ngresiki kabeh data lan biji saka piranti iki"
+            >
+              Resik Data Pasinaon (Reset Piranti)
+            </button>
+          )}
+        </div>
       </div>
     </footer>
   );

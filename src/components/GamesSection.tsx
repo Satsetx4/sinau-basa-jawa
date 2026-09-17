@@ -127,6 +127,16 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar }) => {
     setSukuFeedback(null);
   };
 
+  const handleRemoveChunk = (index: number) => {
+    playClick();
+    const removedChunk = assembledChunks[index];
+    const newAssembled = [...assembledChunks];
+    newAssembled.splice(index, 1);
+    setAssembledChunks(newAssembled);
+    setAvailableChunks([...availableChunks, removedChunk]);
+    setSukuFeedback(null);
+  };
+
   const handleNextSuku = () => {
     playClick();
     setSukuFeedback(null);
@@ -406,24 +416,35 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar }) => {
               </div>
 
               {/* Assembled Word Box */}
-              <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border-2 border-dashed border-slate-300 dark:border-slate-700 text-center min-h-[90px] flex flex-col items-center justify-center gap-2">
-                <span className="text-xs text-slate-400">Papan Gandheng Suku Kata:</span>
-                <div className="flex items-center gap-2">
+              <div className="p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border-2 border-dashed border-slate-300 dark:border-slate-700 text-center min-h-[96px] flex flex-col items-center justify-center gap-2">
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  Papan Gandheng Suku Kata:
+                </span>
+                <div className="flex items-center gap-2 flex-wrap justify-center">
                   {assembledChunks.length === 0 ? (
-                    <span className="text-sm text-slate-400 italic">
+                    <span className="text-xs sm:text-sm text-slate-400 italic">
                       (Pencet potongan suku kata ing ngisor iki kanggo nggabung)
                     </span>
                   ) : (
                     assembledChunks.map((ch, idx) => (
-                      <span
+                      <button
                         key={idx}
-                        className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-heading font-bold text-2xl shadow-md animate-pop-in"
+                        onClick={() => handleRemoveChunk(idx)}
+                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-rose-600 text-white font-heading font-bold text-2xl shadow-md animate-pop-in cursor-pointer group transition-all relative"
+                        title="Tutul kanggo mbatalake/undo suku kata iki"
+                        aria-label={`Batalake ${ch}`}
                       >
-                        {ch}
-                      </span>
+                        <span>{ch}</span>
+                        <span className="text-[10px] absolute -top-1.5 -right-1.5 bg-rose-500 text-white rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">✕</span>
+                      </button>
                     ))
                   )}
                 </div>
+                {assembledChunks.length > 0 && (
+                  <span className="text-[11px] text-slate-400 italic">
+                    💡 Tutul suku kata ing ndhuwur iki yen arep mbatalake (undo)
+                  </span>
+                )}
               </div>
 
               {/* Available Chunks to Click */}

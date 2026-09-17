@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { KAMUS_DATA, KamusEntry } from '../data/kamusData';
-import { Search, Volume2, BookOpen, Sparkles, Filter } from 'lucide-react';
+import { Search, Volume2, BookOpen, Filter, X } from 'lucide-react';
 import { playClick } from '../lib/sound';
 import { speakText } from '../lib/speech';
 
@@ -49,14 +49,26 @@ export const KamusSection: React.FC = () => {
       {/* Search Bar & Filter Chips */}
       <div className="space-y-4 mb-8">
         <div className="relative max-w-2xl">
-          <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+          <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             placeholder="Golek tembung (contone: mangan, kepala, ngombe, turu, untu)..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-800 dark:text-slate-100 shadow-sm"
+            className="w-full pl-12 pr-11 py-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-800 dark:text-slate-100 shadow-sm"
           />
+          {searchTerm.length > 0 && (
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                playClick();
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-500 dark:text-slate-300 transition-colors cursor-pointer"
+              aria-label="Kosongake telusuran"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {/* Category Pills */}

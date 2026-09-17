@@ -6,9 +6,15 @@ import { speakText } from '../lib/speech';
 
 interface MateriSectionProps {
   onStartQuizTopic: (topicId: string) => void;
+  completedTopics?: string[];
+  onToggleCompleteTopic?: (topicId: string) => void;
 }
 
-export const MateriSection: React.FC<MateriSectionProps> = ({ onStartQuizTopic }) => {
+export const MateriSection: React.FC<MateriSectionProps> = ({
+  onStartQuizTopic,
+  completedTopics = [],
+  onToggleCompleteTopic
+}) => {
   const [selectedTopicId, setSelectedTopicId] = useState<string>(MATERI_MODULES[0].id);
 
   const currentModule = MATERI_MODULES.find(m => m.id === selectedTopicId) || MATERI_MODULES[0];
@@ -52,6 +58,7 @@ export const MateriSection: React.FC<MateriSectionProps> = ({ onStartQuizTopic }
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 mb-8">
         {MATERI_MODULES.map((m) => {
           const isSelected = m.id === selectedTopicId;
+          const isCompleted = completedTopics.includes(m.id);
           return (
             <button
               key={m.id}
@@ -68,13 +75,17 @@ export const MateriSection: React.FC<MateriSectionProps> = ({ onStartQuizTopic }
               <div className="flex items-center justify-between">
                 <span
                   className={`w-6 h-6 rounded-lg flex items-center justify-center font-heading font-bold text-xs ${
-                    isSelected ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800 dark:bg-slate-700 dark:text-emerald-400'
+                    isSelected
+                      ? 'bg-white/20 text-white'
+                      : isCompleted
+                      ? 'bg-emerald-500 text-white shadow-sm'
+                      : 'bg-emerald-100 text-emerald-800 dark:bg-slate-700 dark:text-emerald-400'
                   }`}
                 >
-                  {m.number}
+                  {isCompleted ? '✓' : m.number}
                 </span>
-                <span className={`text-[10px] uppercase font-bold tracking-wider ${isSelected ? 'text-emerald-100' : 'text-slate-400'}`}>
-                  Bab {m.number}
+                <span className={`text-[10px] uppercase font-bold tracking-wider ${isSelected ? 'text-emerald-100' : isCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}>
+                  {isCompleted ? 'Rampung' : `Bab ${m.number}`}
                 </span>
               </div>
               <p className={`font-heading font-bold text-xs line-clamp-2 ${isSelected ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
@@ -267,16 +278,38 @@ export const MateriSection: React.FC<MateriSectionProps> = ({ onStartQuizTopic }
 
         {/* Bottom CTA for Module */}
         <div className="pt-4 border-t border-slate-100 dark:border-slate-700/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-slate-500 dark:text-slate-400 italic">
-            💡 {currentModule.interactiveTip}
-          </p>
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            {onToggleCompleteTopic && (
+              <button
+                onClick={() => {
+                  playClick();
+                  onToggleCompleteTopic(currentModule.id);
+                }}
+                className={`px-4 py-2.5 rounded-xl font-heading font-bold text-xs flex items-center gap-2 border transition-all cursor-pointer ${
+                  completedTopics.includes(currentModule.id)
+                    ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-400 text-emerald-700 dark:text-emerald-300'
+                    : 'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:border-emerald-500 hover:bg-slate-50'
+                }`}
+              >
+                <CheckCircle className={`w-4 h-4 ${completedTopics.includes(currentModule.id) ? 'text-emerald-600' : 'text-slate-400'}`} />
+                <span>
+                  {completedTopics.includes(currentModule.id)
+                    ? 'Wis Ditandhani Rampung ✓'
+                    : 'Tandhani Rampung Sinau (+5 ⭐)'}
+                </span>
+              </button>
+            )}
+            <p className="text-xs text-slate-500 dark:text-slate-400 italic hidden md:block">
+              💡 {currentModule.interactiveTip}
+            </p>
+          </div>
 
           <button
             onClick={() => {
               playClick();
               onStartQuizTopic(currentModule.id);
             }}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-heading font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-600/25 active:scale-95 transition-all"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-heading font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-600/25 active:scale-95 transition-all cursor-pointer"
           >
             <span>Gladhen Soal Bab {currentModule.number}</span>
             <ArrowRight className="w-3.5 h-3.5" />
