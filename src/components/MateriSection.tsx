@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { MATERI_MODULES, TopicModule } from '../data/materiData';
-import { Volume2, Sparkles, CheckCircle, ArrowRight, BookOpen, Lightbulb } from 'lucide-react';
+import { Volume2, Sparkles, CheckCircle, ArrowRight, BookOpen, Lightbulb, Star } from 'lucide-react';
 import { playClick } from '../lib/sound';
 import { speakText } from '../lib/speech';
 
@@ -292,10 +292,16 @@ export const MateriSection: React.FC<MateriSectionProps> = ({
                 }`}
               >
                 <CheckCircle className={`w-4 h-4 ${completedTopics.includes(currentModule.id) ? 'text-emerald-600' : 'text-slate-400'}`} />
-                <span>
-                  {completedTopics.includes(currentModule.id)
-                    ? 'Wis Ditandhani Rampung ✓'
-                    : 'Tandhani Rampung Sinau (+5 ⭐)'}
+                <span className="inline-flex items-center gap-1">
+                  {completedTopics.includes(currentModule.id) ? (
+                    'Wis Ditandhani Rampung'
+                  ) : (
+                    <>
+                      <span>Tandhani Rampung Sinau (+5</span>
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500 inline" />
+                      <span>)</span>
+                    </>
+                  )}
                 </span>
               </button>
             )}

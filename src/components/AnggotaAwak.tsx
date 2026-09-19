@@ -1,5 +1,21 @@
 import React, { useState, useMemo } from 'react';
-import { Volume2, Sparkles, HelpCircle, CheckCircle2, XCircle } from 'lucide-react';
+import {
+  Volume2,
+  Sparkles,
+  HelpCircle,
+  CheckCircle2,
+  XCircle,
+  Crown,
+  Eye,
+  Ear,
+  Wind,
+  Smile,
+  Shield,
+  Hand,
+  Footprints,
+  ArrowLeft,
+  Lightbulb
+} from 'lucide-react';
 import { playClick, playCorrect, playWrong } from '../lib/sound';
 import { speakText } from '../lib/speech';
 import wayangSiswaImg from '../assets/wayang-siswa.jpg';
@@ -13,7 +29,7 @@ interface BodyPart {
   teacherNote: string;
   pinX: number; // percentage X
   pinY: number; // percentage Y
-  iconSymbol: string;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
 const BODY_PARTS: BodyPart[] = [
@@ -26,7 +42,7 @@ const BODY_PARTS: BodyPart[] = [
     teacherNote: 'Elinga ya: Mahkota iku dipasang ing mustaka (sirah). Marang guru utawa wong tuwa kudu matur nganggo tembung mustaka.',
     pinX: 50,
     pinY: 8,
-    iconSymbol: '👑'
+    icon: Crown
   },
   {
     id: 'mata',
@@ -37,7 +53,7 @@ const BODY_PARTS: BodyPart[] = [
     teacherNote: 'Paningal asale saka tembung "tingal" (ndeleng utawa mirsani). Mripat kanggone ndeleng, krama inggile paningal.',
     pinX: 41,
     pinY: 17.5,
-    iconSymbol: '👀'
+    icon: Eye
   },
   {
     id: 'telinga',
@@ -48,7 +64,7 @@ const BODY_PARTS: BodyPart[] = [
     teacherNote: 'Kuping kanggone ngrungokake. Krama inggile talingan, pamirengane kanggo ngrungokake dawuh becik.',
     pinX: 62,
     pinY: 19.5,
-    iconSymbol: '👂'
+    icon: Ear
   },
   {
     id: 'hidung',
@@ -59,7 +75,7 @@ const BODY_PARTS: BodyPart[] = [
     teacherNote: 'Irung kanggo ambegan lan ngrasakake ganda arum. Krama inggile yaiku grana.',
     pinX: 50,
     pinY: 20.5,
-    iconSymbol: '👃'
+    icon: Wind
   },
   {
     id: 'mulut',
@@ -70,7 +86,7 @@ const BODY_PARTS: BodyPart[] = [
     teacherNote: 'Aja tau ngucapake cangkem marang wong tuwa ya bocah-bocah, kudu matur nganggo tembung tutuk!',
     pinX: 45,
     pinY: 24,
-    iconSymbol: '👄'
+    icon: Smile
   },
   {
     id: 'gigi',
@@ -81,7 +97,7 @@ const BODY_PARTS: BodyPart[] = [
     teacherNote: 'Untu krama inggile waos. Eling-eling: waos kudu resik supaya ora gampang krowok.',
     pinX: 55,
     pinY: 24,
-    iconSymbol: '🦷'
+    icon: Shield
   },
   {
     id: 'tangan',
@@ -92,7 +108,7 @@ const BODY_PARTS: BodyPart[] = [
     teacherNote: 'Tangan krama inggile asta. Nalika salim karo Bu Guru, kita nyalami asta kanthi sopan santun.',
     pinX: 32,
     pinY: 56,
-    iconSymbol: '✋'
+    icon: Hand
   },
   {
     id: 'kaki',
@@ -103,15 +119,16 @@ const BODY_PARTS: BodyPart[] = [
     teacherNote: 'Sikil krama inggile suku. Digunakake kanggo mlampah menyang panggonan sing becik.',
     pinX: 43,
     pinY: 82,
-    iconSymbol: '🦵'
+    icon: Footprints
   }
 ];
 
 interface AnggotaAwakProps {
   onEarnStar?: () => void;
+  onBack?: () => void;
 }
 
-export const AnggotaAwak: React.FC<AnggotaAwakProps> = ({ onEarnStar }) => {
+export const AnggotaAwak: React.FC<AnggotaAwakProps> = ({ onEarnStar, onBack }) => {
   const [selectedPart, setSelectedPart] = useState<BodyPart>(BODY_PARTS[0]);
   const [quizMode, setQuizMode] = useState(false);
   const [quizQuestionIndex, setQuizQuestionIndex] = useState(0);
@@ -124,6 +141,7 @@ export const AnggotaAwak: React.FC<AnggotaAwakProps> = ({ onEarnStar }) => {
   };
 
   const currentQuizPart = BODY_PARTS[quizQuestionIndex];
+  const CurrentQuizIcon = currentQuizPart.icon;
 
   // Generate 3 randomized multiple-choice options for the interactive guessing game
   const quizOptions = useMemo(() => {
@@ -157,6 +175,17 @@ export const AnggotaAwak: React.FC<AnggotaAwakProps> = ({ onEarnStar }) => {
 
   return (
     <section className="py-6 sm:py-8 text-left max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Wayfinding Back Button */}
+      {onBack && (
+        <button
+          onClick={() => { playClick(); onBack(); }}
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-heading font-semibold transition-all mb-4 min-h-[44px] cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Bali menyang Beranda</span>
+        </button>
+      )}
+
       {/* Section Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 sm:mb-8 gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
@@ -179,7 +208,7 @@ export const AnggotaAwak: React.FC<AnggotaAwakProps> = ({ onEarnStar }) => {
             setQuizSelectedOption(null);
             playClick();
           }}
-          className={`px-4 py-2.5 rounded-2xl font-heading font-bold text-xs flex items-center gap-2 shadow-md transition-all self-start md:self-auto cursor-pointer ${
+          className={`px-4 py-2.5 rounded-2xl font-heading font-bold text-xs flex items-center gap-2 shadow-md transition-all self-start md:self-auto cursor-pointer min-h-[44px] ${
             quizMode
               ? 'bg-purple-600 text-white shadow-purple-600/30'
               : 'bg-white dark:bg-slate-800 text-purple-600 dark:text-purple-400 border border-purple-400/40 hover:bg-purple-50 dark:hover:bg-slate-700'
@@ -197,10 +226,10 @@ export const AnggotaAwak: React.FC<AnggotaAwakProps> = ({ onEarnStar }) => {
             Tebak Cepat #{quizQuestionIndex + 1} saka {BODY_PARTS.length}
           </div>
 
-          <div className="space-y-2">
-            <span className="text-5xl sm:text-6xl block mb-2 animate-bounce" style={{ animationDuration: '3s' }}>
-              {currentQuizPart.iconSymbol}
-            </span>
+          <div className="space-y-3">
+            <div className="w-20 h-20 rounded-3xl bg-purple-100 dark:bg-purple-950/80 border-2 border-purple-300 dark:border-purple-700 mx-auto flex items-center justify-center text-purple-600 dark:text-purple-300 shadow-md">
+              <CurrentQuizIcon className="w-10 h-10 animate-bounce" />
+            </div>
             <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Apa basa krama inggile perangan awak iki?
             </p>
@@ -231,7 +260,7 @@ export const AnggotaAwak: React.FC<AnggotaAwakProps> = ({ onEarnStar }) => {
                   key={idx}
                   disabled={quizSelectedOption !== null}
                   onClick={() => handleQuizAnswer(option)}
-                  className={`p-4 rounded-2xl border-2 font-heading font-bold text-lg transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 ${btnStyle}`}
+                  className={`p-4 rounded-2xl border-2 font-heading font-bold text-lg transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 min-h-[48px] ${btnStyle}`}
                 >
                   <span>{option}</span>
                   {quizSelectedOption !== null && isCorrect && <CheckCircle2 className="w-5 h-5 text-white" />}
@@ -251,8 +280,18 @@ export const AnggotaAwak: React.FC<AnggotaAwakProps> = ({ onEarnStar }) => {
               }`}
             >
               <div className="text-left space-y-1">
-                <span className="text-xs font-bold uppercase tracking-wider block">
-                  {quizSelectedOption === currentQuizPart.kramaInggil ? '🎉 Jawabanmu Bener!' : '💡 Jawaban sing bener:'}
+                <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  {quizSelectedOption === currentQuizPart.kramaInggil ? (
+                    <>
+                      <Sparkles className="w-4 h-4 text-emerald-600" />
+                      Jawabanmu Bener!
+                    </>
+                  ) : (
+                    <>
+                      <Lightbulb className="w-4 h-4 text-amber-600" />
+                      Jawaban sing bener:
+                    </>
+                  )}
                 </span>
                 <p className="text-sm font-semibold">
                   Basa krama inggile <strong className="text-purple-700 dark:text-purple-300 font-bold">{currentQuizPart.ngoko}</strong> yaiku <strong className="text-emerald-700 dark:text-emerald-300 font-bold">{currentQuizPart.kramaInggil}</strong>.
@@ -260,15 +299,16 @@ export const AnggotaAwak: React.FC<AnggotaAwakProps> = ({ onEarnStar }) => {
                 <p className="text-xs italic text-slate-600 dark:text-slate-300 pt-1">
                   &ldquo;{currentQuizPart.exampleSentence}&rdquo;
                 </p>
-                <p className="text-xs text-amber-800 dark:text-amber-300 pt-1 font-medium">
-                  💡 {currentQuizPart.teacherNote}
+                <p className="text-xs text-amber-800 dark:text-amber-300 pt-1 font-medium flex items-start gap-1">
+                  <Lightbulb className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                  <span>{currentQuizPart.teacherNote}</span>
                 </p>
               </div>
 
               <div className="pt-2 flex justify-end">
                 <button
                   onClick={handleNextQuiz}
-                  className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-heading font-bold text-xs shadow-md active:scale-95 transition-all"
+                  className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-heading font-bold text-xs shadow-md active:scale-95 transition-all min-h-[44px]"
                 >
                   Soal Sabanjure ➔
                 </button>
@@ -298,6 +338,7 @@ export const AnggotaAwak: React.FC<AnggotaAwakProps> = ({ onEarnStar }) => {
               {/* Clickable Anatomy Pins Overlay with safe touch areas */}
               {BODY_PARTS.map((part) => {
                 const isSelected = selectedPart.id === part.id;
+                const PartIcon = part.icon;
                 return (
                   <button
                     key={part.id}
@@ -316,7 +357,7 @@ export const AnggotaAwak: React.FC<AnggotaAwakProps> = ({ onEarnStar }) => {
                           : 'bg-white/95 dark:bg-slate-800 text-purple-700 dark:text-purple-300 border-2 border-purple-500 hover:bg-purple-50 shadow-md'
                       }`}
                     >
-                      <span className="text-xs sm:text-sm">{part.iconSymbol}</span>
+                      <PartIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
                   </button>
                 );
@@ -334,8 +375,8 @@ export const AnggotaAwak: React.FC<AnggotaAwakProps> = ({ onEarnStar }) => {
             <div className="p-5 sm:p-7 rounded-3xl bg-white dark:bg-slate-800/90 border-2 border-purple-500/40 shadow-xl space-y-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-950 flex items-center justify-center text-3xl shadow-inner border border-purple-300 dark:border-purple-800 shrink-0">
-                    {selectedPart.iconSymbol}
+                  <div className="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-950 flex items-center justify-center shadow-inner border border-purple-300 dark:border-purple-800 shrink-0 text-purple-700 dark:text-purple-300">
+                    <selectedPart.icon className="w-8 h-8" />
                   </div>
                   <div>
                     <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
@@ -395,8 +436,9 @@ export const AnggotaAwak: React.FC<AnggotaAwakProps> = ({ onEarnStar }) => {
               </div>
 
               {/* Teacher Pedagogy Note */}
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-sans leading-relaxed pt-1">
-                💡 <strong className="text-slate-800 dark:text-slate-200">Cathetan Guru:</strong> {selectedPart.teacherNote}
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-sans leading-relaxed pt-1 flex items-start gap-1">
+                <Lightbulb className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                <span><strong className="text-slate-800 dark:text-slate-200">Cathetan Guru:</strong> {selectedPart.teacherNote}</span>
               </p>
             </div>
 
@@ -408,17 +450,20 @@ export const AnggotaAwak: React.FC<AnggotaAwakProps> = ({ onEarnStar }) => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {BODY_PARTS.map((part) => {
                   const isSelected = selectedPart.id === part.id;
+                  const PartIcon = part.icon;
                   return (
                     <button
                       key={part.id}
                       onClick={() => handleSelectPart(part)}
-                      className={`p-3 rounded-2xl border text-left transition-all flex items-center gap-2 cursor-pointer min-h-[48px] active:scale-95 ${
+                      className={`p-3 rounded-2xl border text-left transition-all flex items-center gap-2.5 cursor-pointer min-h-[48px] active:scale-95 ${
                         isSelected
                           ? 'bg-purple-600 text-white border-purple-600 shadow-md scale-[1.02]'
                           : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200'
                       }`}
                     >
-                      <span className="text-lg shrink-0">{part.iconSymbol}</span>
+                      <div className={`p-1.5 rounded-xl ${isSelected ? 'bg-purple-700 text-white' : 'bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-300'} shrink-0`}>
+                        <PartIcon className="w-4 h-4" />
+                      </div>
                       <div className="min-w-0">
                         <div className="text-xs font-heading font-bold truncate">
                           {part.nameIndo}

@@ -211,11 +211,17 @@ export function App() {
           )}
 
           {activeTab === 'awak' && (
-            <AnggotaAwak onEarnStar={() => handleEarnStar(1)} />
+            <AnggotaAwak
+              onEarnStar={() => handleEarnStar(1)}
+              onBack={() => setActiveTab('materi')}
+            />
           )}
 
           {activeTab === 'dolanan' && (
-            <GamesSection onEarnStar={() => handleEarnStar(1)} />
+            <GamesSection
+              onEarnStar={() => handleEarnStar(1)}
+              onBack={() => setActiveTab('materi')}
+            />
           )}
 
           {activeTab === 'soal' && (
@@ -226,11 +232,14 @@ export function App() {
               initialTopicFilter={quizTopicFilter}
               lastExamScore={lastExamScore}
               onSaveExamScore={handleSaveExamScore}
+              onBack={() => setActiveTab('materi')}
             />
           )}
 
           {activeTab === 'kamus' && (
-            <KamusSection />
+            <KamusSection
+              onBack={() => setActiveTab('materi')}
+            />
           )}
         </div>
       </main>

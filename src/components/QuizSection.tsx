@@ -1,6 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { BANK_SOAL, QuestionItem } from '../data/bankSoalData';
-import { Award, CheckCircle2, XCircle, Volume2, Sparkles, RefreshCw, Clock, ArrowRight, Lightbulb, Check, Printer, FileText } from 'lucide-react';
+import {
+  Award,
+  CheckCircle2,
+  XCircle,
+  Volume2,
+  Sparkles,
+  RefreshCw,
+  Clock,
+  ArrowRight,
+  Lightbulb,
+  Check,
+  Printer,
+  FileText,
+  Trophy,
+  BookOpen,
+  AlertTriangle,
+  ArrowLeft,
+  GraduationCap
+} from 'lucide-react';
 import { playClick, playCorrect, playWrong, playFanfare } from '../lib/sound';
 import { speakText } from '../lib/speech';
 import confetti from 'canvas-confetti';
@@ -12,6 +30,7 @@ interface QuizSectionProps {
   initialTopicFilter?: string | null;
   lastExamScore?: number | null;
   onSaveExamScore?: (score: number) => void;
+  onBack?: () => void;
 }
 
 export const QuizSection: React.FC<QuizSectionProps> = ({
@@ -20,7 +39,8 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
   onEarnStar,
   initialTopicFilter = null,
   lastExamScore = null,
-  onSaveExamScore
+  onSaveExamScore,
+  onBack
 }) => {
   const [quizMode, setQuizMode] = useState<'latihan' | 'ujian'>('latihan');
   const [selectedTopic, setSelectedTopic] = useState<string>(initialTopicFilter || 'all');
@@ -193,6 +213,17 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
 
   return (
     <section className="py-8 text-left max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Wayfinding Back Button */}
+      {onBack && (
+        <button
+          onClick={() => { playClick(); onBack(); }}
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-heading font-semibold transition-all mb-4 min-h-[44px] cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Bali menyang Beranda</span>
+        </button>
+      )}
+
       {/* Section Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
@@ -216,13 +247,14 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
               setQuizMode('latihan');
               handleResetQuiz();
             }}
-            className={`px-3.5 py-2 rounded-xl text-xs font-heading font-bold transition-all ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-heading font-bold transition-all flex items-center gap-1.5 min-h-[40px] cursor-pointer ${
               quizMode === 'latihan'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
             }`}
           >
-            📖 Mode Latihan Santai
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>Mode Latihan Santai</span>
           </button>
           <button
             onClick={() => {
@@ -230,13 +262,14 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
               setIsTimerRunning(true);
               handleResetQuiz();
             }}
-            className={`px-3.5 py-2 rounded-xl text-xs font-heading font-bold transition-all ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-heading font-bold transition-all flex items-center gap-1.5 min-h-[40px] cursor-pointer ${
               quizMode === 'ujian'
                 ? 'bg-amber-500 text-white shadow-sm'
                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
             }`}
           >
-            ⏱️ Mode Penilaian Harian
+            <Clock className="w-3.5 h-3.5" />
+            <span>Mode Penilaian Harian</span>
           </button>
         </div>
       </div>
@@ -245,7 +278,7 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
       {lastExamScore !== null && !isSubmitted && (
         <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left animate-fade-in">
           <div className="flex items-center gap-2 text-xs font-heading font-semibold text-amber-900 dark:text-amber-200">
-            <span className="text-lg">🏆</span>
+            <Trophy className="w-4 h-4 text-amber-500 shrink-0" />
             <span>Biji Ujian Penilaian Harian Paling Anyar:</span>
             <span className="font-bold text-base text-amber-600 dark:text-amber-400">{lastExamScore}/100</span>
           </div>
@@ -289,8 +322,12 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
         <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
           {/* Summary Score Card */}
           <div className="p-8 rounded-3xl bg-white dark:bg-slate-800/90 border-2 border-emerald-500/30 shadow-2xl text-center space-y-6">
-            <div className="w-20 h-20 rounded-3xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600 mx-auto flex items-center justify-center text-4xl shadow-inner border border-emerald-300 dark:border-emerald-700">
-              {results.percentage >= 70 ? '🏆' : '📚'}
+            <div className="w-20 h-20 rounded-3xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600 mx-auto flex items-center justify-center shadow-inner border border-emerald-300 dark:border-emerald-700">
+              {results.percentage >= 70 ? (
+                <Trophy className="w-10 h-10 text-amber-500" />
+              ) : (
+                <BookOpen className="w-10 h-10 text-emerald-600" />
+              )}
             </div>
 
             <div>
@@ -337,7 +374,9 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
 
             {/* Teacher Encouragement Letter */}
             <div className="p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800 text-left flex items-start gap-3.5 max-w-2xl mx-auto">
-              <div className="text-2xl shrink-0">👩‍🏫</div>
+              <div className="p-2 rounded-2xl bg-amber-200 dark:bg-amber-900 text-amber-800 dark:text-amber-200 shrink-0">
+                <GraduationCap className="w-6 h-6" />
+              </div>
               <div className="space-y-1">
                 <h4 className="font-heading font-bold text-xs sm:text-sm text-amber-900 dark:text-amber-200">
                   Cathetan Evaluasi saka Bu Guru Siti:
@@ -352,23 +391,33 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
               </div>
             </div>
 
-            {/* Action Buttons: Certificate and Retry */}
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+            {/* Action Buttons: Certificate, Retry, and Wayfinding Back */}
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <button
                 onClick={() => onOpenCertificate(results.percentage)}
-                className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-heading font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center gap-2 active:scale-95 transition-all"
+                className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-heading font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center gap-2 active:scale-95 transition-all min-h-[46px]"
               >
                 <Printer className="w-4 h-4" />
-                Cetak Sertifikat Siswa Berprestasi
+                Cetak Sertifikat Siswa
               </button>
 
               <button
                 onClick={handleResetQuiz}
-                className="px-6 py-3.5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-heading font-bold text-sm shadow-md flex items-center gap-2 active:scale-95 transition-all"
+                className="px-5 py-3.5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-heading font-bold text-sm shadow-md flex items-center gap-2 active:scale-95 transition-all min-h-[46px]"
               >
                 <RefreshCw className="w-4 h-4" />
-                Ulangi Ujian Maneh
+                Ulangi Ujian
               </button>
+
+              {onBack && (
+                <button
+                  onClick={() => { playClick(); onBack(); }}
+                  className="px-5 py-3.5 rounded-2xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 font-heading font-semibold text-sm flex items-center gap-2 active:scale-95 transition-all min-h-[46px]"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Bali menyang Beranda
+                </button>
+              )}
             </div>
           </div>
 
@@ -473,9 +522,17 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
                   ({answeredCount}/{filteredQuestions.length} Wis Diisi)
                 </span>
               </span>
-              <span className="text-[11px] text-slate-400 hidden sm:inline">
-                Tutul nomer kanggo mbukak langsung
+              <span className="text-[11px] text-slate-400 font-medium">
+                {Math.round((answeredCount / filteredQuestions.length) * 100)}% Rampung
               </span>
+            </div>
+
+            {/* Visual Animated Progress Bar */}
+            <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-300 rounded-full"
+                style={{ width: `${Math.round((answeredCount / filteredQuestions.length) * 100)}%` }}
+              />
             </div>
 
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
@@ -626,8 +683,9 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
                 <p className="text-xs sm:text-sm leading-relaxed font-sans text-slate-700 dark:text-slate-300">
                   {currentQuestion.explanation}
                 </p>
-                <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 pt-1 border-t border-amber-200/60 dark:border-amber-800/60">
-                  💡 {currentQuestion.teacherTip}
+                <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 pt-1 border-t border-amber-200/60 dark:border-amber-800/60 flex items-start gap-1">
+                  <Lightbulb className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                  <span>{currentQuestion.teacherTip}</span>
                 </p>
               </div>
             )}
@@ -637,15 +695,16 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
               <button
                 disabled={currentIndex === 0}
                 onClick={handlePrevQuestion}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-heading font-semibold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
+                className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-heading font-semibold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center gap-1.5 min-h-[44px]"
               >
-                ◀ Pitakon Sadurunge
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Pitakon Sadurunge</span>
               </button>
 
               {currentIndex + 1 < filteredQuestions.length ? (
                 <button
                   onClick={handleNextQuestion}
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-heading font-bold text-xs shadow-md active:scale-95 transition-all flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-heading font-bold text-xs shadow-md active:scale-95 transition-all flex items-center gap-2 min-h-[44px]"
                 >
                   <span>Pitakon Sabanjure</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -653,7 +712,7 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
               ) : (
                 <button
                   onClick={handleAttemptSubmit}
-                  className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-heading font-bold text-xs shadow-md shadow-amber-500/30 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+                  className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-heading font-bold text-xs shadow-md shadow-amber-500/30 active:scale-95 transition-all flex items-center gap-2 cursor-pointer min-h-[44px]"
                 >
                   <Award className="w-4 h-4" />
                   <span>Kirim & Deleng Rapor</span>
@@ -668,8 +727,8 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
       {showConfirmSubmit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl border border-amber-500/40 space-y-4 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 mx-auto flex items-center justify-center text-3xl shadow-inner">
-              ⚠️
+            <div className="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 mx-auto flex items-center justify-center shadow-inner">
+              <AlertTriangle className="w-8 h-8" />
             </div>
             <h4 className="font-heading font-bold text-xl text-slate-900 dark:text-white">
               Isih Ana Soal Sing Durung Diisi!

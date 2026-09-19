@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, BookOpen, Award, Volume2, ArrowRight } from 'lucide-react';
+import { Sparkles, BookOpen, Award, Volume2, ArrowRight, GraduationCap, MessageSquareQuote, UserCheck, Pencil } from 'lucide-react';
 import { playClick } from '../lib/sound';
 import { speakText } from '../lib/speech';
 
@@ -49,8 +49,9 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, studentNam
               >
                 <span>{displayName}</span>
                 {!studentName.trim() && (
-                  <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/40">
-                    ✏️ Isi Jeneng
+                  <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/40 inline-flex items-center gap-1">
+                    <Pencil className="w-3 h-3" />
+                    <span>Isi Jeneng</span>
                   </span>
                 )}
               </button>
@@ -61,8 +62,8 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, studentNam
 
             {/* Teacher Encouragement Speech Bubble */}
             <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-emerald-500/20 shadow-md flex items-start gap-3.5 relative">
-              <div className="w-11 h-11 rounded-full bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center shrink-0 border border-emerald-300 dark:border-emerald-700 text-xl">
-                👩‍🏫
+              <div className="w-11 h-11 rounded-full bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center shrink-0 border border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300">
+                <GraduationCap className="w-6 h-6" />
               </div>
               <div className="space-y-1 flex-1">
                 <div className="flex items-center justify-between gap-2">
@@ -136,7 +137,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, studentNam
               className="p-4 rounded-3xl bg-gradient-to-br from-indigo-500/10 to-purple-500/5 dark:from-indigo-500/15 dark:to-purple-500/10 border border-indigo-500/30 hover:border-indigo-500 hover:scale-105 transition-all duration-300 cursor-pointer shadow-sm text-left group"
             >
               <div className="w-10 h-10 rounded-2xl bg-indigo-500 text-white flex items-center justify-center font-heading font-bold text-lg mb-2.5 shadow-md shadow-indigo-500/30">
-                🗣️
+                <MessageSquareQuote className="w-5 h-5" />
               </div>
               <h3 className="font-heading font-bold text-sm text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
                 Ngoko & Basa Krama
@@ -151,7 +152,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, studentNam
               onClick={() => { setActiveTab('materi'); playClick(); }}
               className="p-4 rounded-3xl bg-gradient-to-br from-rose-500/10 to-amber-500/5 dark:from-rose-500/15 dark:to-amber-500/10 border border-rose-500/30 hover:border-rose-500 hover:scale-105 transition-all duration-300 cursor-pointer shadow-sm text-left group"
             >
-              <div className="w-10 h-10 rounded-2xl bg-rose-500 text-white flex items-center justify-center font-heading font-bold text-sm mb-2.5 shadow-md shadow-rose-500/30">
+              <div className="w-10 h-10 rounded-2xl bg-rose-500 text-white flex items-center justify-center font-heading font-bold text-xs mb-2.5 shadow-md shadow-rose-500/30">
                 TH≠DH
               </div>
               <h3 className="font-heading font-bold text-sm text-slate-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400">
@@ -168,7 +169,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, studentNam
               className="p-4 rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/5 dark:from-purple-500/15 dark:to-pink-500/10 border border-purple-500/30 hover:border-purple-500 hover:scale-105 transition-all duration-300 cursor-pointer shadow-sm text-left group"
             >
               <div className="w-10 h-10 rounded-2xl bg-purple-500 text-white flex items-center justify-center font-heading font-bold text-lg mb-2.5 shadow-md shadow-purple-500/30">
-                🧠
+                <UserCheck className="w-5 h-5" />
               </div>
               <h3 className="font-heading font-bold text-sm text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400">
                 Wayang Awak

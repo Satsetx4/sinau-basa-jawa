@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, User, Check, X, RotateCcw } from 'lucide-react';
+import { Sparkles, User, Check, X, RotateCcw, AlertTriangle, Gift, Star, ArrowRight } from 'lucide-react';
 import { playClick, playFanfare } from '../lib/sound';
 
 interface NameModalProps {
@@ -122,8 +122,9 @@ export const NameModal: React.FC<NameModalProps> = ({
           </div>
 
           {errorMsg && (
-            <p className="text-xs font-semibold text-rose-500 animate-shake">
-              ⚠️ {errorMsg}
+            <p className="text-xs font-semibold text-rose-500 animate-shake flex items-center justify-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+              <span>{errorMsg}</span>
             </p>
           )}
 
@@ -149,8 +150,12 @@ export const NameModal: React.FC<NameModalProps> = ({
           {/* First launch star bonus info */}
           {isFirstLaunch && (
             <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs font-heading font-bold flex items-center justify-center gap-2">
-              <span>🎁</span>
-              <span>Bonus +3 Bintang ⭐ kanggo murid anyar!</span>
+              <Gift className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+              <span className="flex items-center gap-1">
+                <span>Bonus +3 Bintang</span>
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500 inline" />
+                <span>kanggo murid anyar!</span>
+              </span>
             </div>
           )}
 
@@ -161,7 +166,10 @@ export const NameModal: React.FC<NameModalProps> = ({
               className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-heading font-bold text-sm shadow-lg shadow-emerald-600/30 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <Check className="w-4 h-4" />
-              <span>{isFirstLaunch ? 'Mulai Sinau Saiki! 🚀' : 'Simpen Jeneng Anyar'}</span>
+              <span className="inline-flex items-center gap-1.5">
+                <span>{isFirstLaunch ? 'Mulai Sinau Saiki!' : 'Simpen Jeneng Anyar'}</span>
+                {isFirstLaunch && <ArrowRight className="w-4 h-4" />}
+              </span>
             </button>
 
             <button

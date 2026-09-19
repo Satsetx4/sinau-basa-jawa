@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Volume2, VolumeX, Sun, Moon, BookOpen, Sparkles, Award, User, Edit3, Check } from 'lucide-react';
+import { Volume2, VolumeX, Sun, Moon, BookOpen, Sparkles, Award, User, Edit3, Check, Star } from 'lucide-react';
 import { playClick } from '../lib/sound';
 
 interface NavbarProps {
@@ -107,7 +107,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Student Name & Stars Pill - Visible on mobile too! */}
             <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200">
               <span className="text-xs sm:text-sm font-heading font-bold flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                ⭐ {starsCount}
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500 shrink-0" />
+                <span>{starsCount}</span>
               </span>
               <div className="h-3.5 w-px bg-amber-400/40" />
               {isEditingName ? (

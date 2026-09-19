@@ -1,15 +1,33 @@
 import React, { useState } from 'react';
 import { PILAH_WORDS, SUKU_KATA_GAMES, SCENARIO_DIALOGS, PilahWord, SukuKataItem, ScenarioDialog } from '../data/gamesData';
-import { Volume2, Sparkles, Check, RefreshCw, Trophy, ArrowRight, Lightbulb, CheckCircle2, XCircle } from 'lucide-react';
+import {
+  Volume2,
+  Sparkles,
+  Check,
+  RefreshCw,
+  Trophy,
+  ArrowRight,
+  Lightbulb,
+  CheckCircle2,
+  XCircle,
+  Star,
+  Puzzle,
+  GraduationCap,
+  UserCheck,
+  User,
+  ArrowLeft,
+  HelpCircle
+} from 'lucide-react';
 import { playClick, playCorrect, playWrong, playFanfare } from '../lib/sound';
 import { speakText } from '../lib/speech';
 import confetti from 'canvas-confetti';
 
 interface GamesSectionProps {
   onEarnStar: () => void;
+  onBack?: () => void;
 }
 
-export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar }) => {
+export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar, onBack }) => {
   const [activeGameTab, setActiveGameTab] = useState<'pilah' | 'suku' | 'dialog'>('pilah');
 
   // State for Game 1: Pilah Swara
@@ -195,6 +213,17 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar }) => {
 
   return (
     <section className="py-8 text-left max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Wayfinding Back Button */}
+      {onBack && (
+        <button
+          onClick={() => { playClick(); onBack(); }}
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-heading font-semibold transition-all mb-4 min-h-[44px] cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Bali menyang Beranda</span>
+        </button>
+      )}
+
       {/* Section Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
@@ -250,8 +279,8 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar }) => {
         <div className="max-w-3xl mx-auto">
           {pilahCompleted ? (
             <div className="p-8 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 shadow-xl text-center space-y-5">
-              <div className="w-16 h-16 rounded-3xl bg-amber-100 dark:bg-amber-950 text-amber-500 mx-auto flex items-center justify-center text-3xl shadow-inner">
-                🏆
+              <div className="w-16 h-16 rounded-3xl bg-amber-100 dark:bg-amber-950 text-amber-500 mx-auto flex items-center justify-center shadow-inner">
+                <Trophy className="w-8 h-8" />
               </div>
               <h3 className="font-heading font-bold text-3xl text-slate-900 dark:text-white">
                 Hore! Dolanan Pilah Swara Rampung!
@@ -274,8 +303,9 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar }) => {
                 <span className="text-xs font-heading font-bold text-emerald-600 dark:text-emerald-400">
                   Tembung #{pilahIndex + 1} saka {PILAH_WORDS.length}
                 </span>
-                <span className="text-xs font-heading font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                  ⭐ Skor Bintang: {pilahScore}
+                <span className="text-xs font-heading font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                  <span>Skor Bintang: {pilahScore}</span>
                 </span>
               </div>
 
@@ -376,8 +406,8 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar }) => {
         <div className="max-w-3xl mx-auto">
           {sukuCompleted ? (
             <div className="p-8 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 shadow-xl text-center space-y-5">
-              <div className="w-16 h-16 rounded-3xl bg-amber-100 dark:bg-amber-950 text-amber-500 mx-auto flex items-center justify-center text-3xl shadow-inner">
-                🧩
+              <div className="w-16 h-16 rounded-3xl bg-amber-100 dark:bg-amber-950 text-amber-500 mx-auto flex items-center justify-center shadow-inner">
+                <Puzzle className="w-8 h-8" />
               </div>
               <h3 className="font-heading font-bold text-3xl text-slate-900 dark:text-white">
                 Wah Joss! Dolanan Suku Kata Rampung!
@@ -400,8 +430,9 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar }) => {
                 <span className="text-xs font-heading font-bold text-sky-600 dark:text-sky-400">
                   Tembung #{sukuIndex + 1} saka {SUKU_KATA_GAMES.length}
                 </span>
-                <span className="text-xs font-heading font-bold text-amber-600 dark:text-amber-400">
-                  ⭐ Skor Bintang: {sukuScore}
+                <span className="text-xs font-heading font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                  <span>Skor Bintang: {sukuScore}</span>
                 </span>
               </div>
 
@@ -505,8 +536,8 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar }) => {
         <div className="max-w-3xl mx-auto">
           {dialogCompleted ? (
             <div className="p-8 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 shadow-xl text-center space-y-5">
-              <div className="w-16 h-16 rounded-3xl bg-amber-100 dark:bg-amber-950 text-amber-500 mx-auto flex items-center justify-center text-3xl shadow-inner">
-                🌟
+              <div className="w-16 h-16 rounded-3xl bg-amber-100 dark:bg-amber-950 text-amber-500 mx-auto flex items-center justify-center shadow-inner">
+                <Sparkles className="w-8 h-8" />
               </div>
               <h3 className="font-heading font-bold text-3xl text-slate-900 dark:text-white">
                 Luar Biasa! Tata Krama Basa Jawa Mantul!
@@ -529,16 +560,23 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar }) => {
                 <span className="text-xs font-heading font-bold text-purple-600 dark:text-purple-400">
                   Kahanan #{dialogIndex + 1} saka {SCENARIO_DIALOGS.length}
                 </span>
-                <span className="text-xs font-heading font-bold text-amber-600 dark:text-amber-400">
-                  ⭐ Skor Bintang: {dialogScore}
+                <span className="text-xs font-heading font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                  <span>Skor Bintang: {dialogScore}</span>
                 </span>
               </div>
 
               {/* Scenario Context Card */}
               <div className="p-5 rounded-2xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-2xl shadow-sm border border-purple-300">
-                    {currentDialog.characterRole === 'Guru' ? '👩‍🏫' : currentDialog.characterRole === 'Simbah' ? '👴' : '👦'}
+                  <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm border border-purple-300">
+                    {currentDialog.characterRole === 'Guru' ? (
+                      <GraduationCap className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                    ) : currentDialog.characterRole === 'Simbah' ? (
+                      <UserCheck className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                    ) : (
+                      <User className="w-6 h-6 text-sky-600 dark:text-sky-400" />
+                    )}
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold tracking-wider text-purple-600 dark:text-purple-400">
@@ -555,8 +593,9 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar }) => {
                 </p>
 
                 <div className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-purple-200 dark:border-purple-800">
-                  <p className="font-heading font-bold text-xs sm:text-sm text-purple-900 dark:text-purple-200">
-                    ❓ {currentDialog.question}
+                  <p className="font-heading font-bold text-xs sm:text-sm text-purple-900 dark:text-purple-200 flex items-center gap-1.5">
+                    <HelpCircle className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                    <span>{currentDialog.question}</span>
                   </p>
                 </div>
               </div>
@@ -607,8 +646,9 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar }) => {
                     <p className="text-xs sm:text-sm font-semibold mb-1">
                       {currentDialog.options[selectedDialogOpt].feedback}
                     </p>
-                    <p className="text-xs font-sans text-slate-600 dark:text-slate-300 leading-relaxed">
-                      💡 {currentDialog.explanation}
+                    <p className="text-xs font-sans text-slate-600 dark:text-slate-300 leading-relaxed flex items-start gap-1">
+                      <Lightbulb className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                      <span>{currentDialog.explanation}</span>
                     </p>
                   </div>
 
