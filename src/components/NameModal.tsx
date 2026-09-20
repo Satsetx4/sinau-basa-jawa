@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, User, Check, X, RotateCcw, AlertTriangle, Gift, Star, ArrowRight } from 'lucide-react';
-import { playClick, playFanfare } from '../lib/sound';
+import { Sparkles, Check, X, RotateCcw, AlertTriangle, Gift, Star, ArrowRight } from 'lucide-react';
+import { playClick } from '../lib/sound';
 
 interface NameModalProps {
   isOpen: boolean;
@@ -10,8 +10,6 @@ interface NameModalProps {
   onResetProgress?: () => void;
   isFirstLaunch?: boolean;
 }
-
-const NAME_SUGGESTIONS = ['Bima Arya', 'Siti Ayu', 'Bagas Wijaya', 'Rara Anindya'];
 
 export const NameModal: React.FC<NameModalProps> = ({
   isOpen,
@@ -44,17 +42,7 @@ export const NameModal: React.FC<NameModalProps> = ({
 
   const handleSkip = () => {
     playClick();
-    if (!currentName) {
-      onSaveName('Bocah Pinter');
-    } else {
-      onClose();
-    }
-  };
-
-  const handleSuggestionClick = (sug: string) => {
-    setNameInput(sug);
-    setErrorMsg('');
-    playClick();
+    onClose();
   };
 
   return (
@@ -90,7 +78,7 @@ export const NameModal: React.FC<NameModalProps> = ({
           </h3>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-sans max-w-sm mx-auto leading-relaxed">
             {isFirstLaunch
-              ? 'Tulis jenengmu supaya biji rapor, sertifikat prestasi resmi, lan wulanganmu bisa kacathet apik!'
+              ? 'Tulis jenengmu supaya piagam sertifikat resmi lan rapor pasinaonmu kacathet nganggo jeneng aslimu!'
               : 'Jeneng iki bakal katulis kanthi resmi ing piagam sertifikat lan rapor pasinaon.'}
           </p>
         </div>
@@ -106,9 +94,9 @@ export const NameModal: React.FC<NameModalProps> = ({
                 setNameInput(e.target.value);
                 if (errorMsg) setErrorMsg('');
               }}
-              placeholder="Conto: Bima Arya utawa Siti..."
+              placeholder="Tulis jeneng jangkepmu ing kene..."
               className="w-full text-center font-heading font-bold text-lg sm:text-xl py-3 px-4 rounded-2xl border-2 border-emerald-400/70 focus:border-emerald-500 bg-emerald-50/30 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition-all shadow-inner"
-              maxLength={28}
+              maxLength={32}
             />
             {nameInput && (
               <button
@@ -127,25 +115,6 @@ export const NameModal: React.FC<NameModalProps> = ({
               <span>{errorMsg}</span>
             </p>
           )}
-
-          {/* Quick Suggestions */}
-          <div className="space-y-1.5 text-left">
-            <span className="text-[11px] font-heading font-bold text-slate-400 uppercase tracking-wider block">
-              Pilihan Jeneng Cepet:
-            </span>
-            <div className="flex flex-wrap gap-1.5">
-              {NAME_SUGGESTIONS.map((sug) => (
-                <button
-                  key={sug}
-                  type="button"
-                  onClick={() => handleSuggestionClick(sug)}
-                  className="px-2.5 py-1 rounded-xl text-xs font-heading font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 hover:text-emerald-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
-                >
-                  + {sug}
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* First launch star bonus info */}
           {isFirstLaunch && (
@@ -177,7 +146,7 @@ export const NameModal: React.FC<NameModalProps> = ({
               onClick={handleSkip}
               className="w-full py-2.5 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 font-heading font-semibold text-xs transition-colors cursor-pointer"
             >
-              {isFirstLaunch ? 'Lewati dhisik (Gunakake &apos;Bocah Pinter&apos;)' : 'Batal'}
+              {isFirstLaunch ? 'Lewati dhisik (Bisa diisi mengko)' : 'Batal'}
             </button>
           </div>
         </form>
@@ -199,3 +168,5 @@ export const NameModal: React.FC<NameModalProps> = ({
     </div>
   );
 };
+
+export default NameModal;

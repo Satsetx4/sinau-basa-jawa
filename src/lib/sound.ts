@@ -1,14 +1,13 @@
+import { safeStorage, STORAGE_KEYS } from './storage';
+
 let audioCtx: AudioContext | null = null;
 
 export const setMuted = (muted: boolean) => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('sinau_basa_jawa_sound_muted', muted ? 'true' : 'false');
-  }
+  safeStorage.setItem(STORAGE_KEYS.SOUND_MUTED, muted ? 'true' : 'false');
 };
 
 export const getMuted = (): boolean => {
-  if (typeof window === 'undefined') return false;
-  return localStorage.getItem('sinau_basa_jawa_sound_muted') === 'true';
+  return safeStorage.getItem(STORAGE_KEYS.SOUND_MUTED) === 'true';
 };
 
 const getAudioContext = (): AudioContext | null => {

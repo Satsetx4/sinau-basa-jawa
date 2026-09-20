@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Navbar } from './components/Navbar';
 import { HeroBanner } from './components/HeroBanner';
 import { MateriSection } from './components/MateriSection';
@@ -10,13 +10,16 @@ import { CertificateModal } from './components/CertificateModal';
 import { NameModal } from './components/NameModal';
 import { Footer } from './components/Footer';
 import { setMuted, getMuted, playClick } from './lib/sound';
+import { safeStorage, STORAGE_KEYS } from './lib/storage';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<string>('materi');
+
+  // Dark/Light mode theme state
   const [isDark, setIsDark] = useState<boolean>(() => {
+    const saved = safeStorage.getItem(STORAGE_KEYS.DARK_MODE);
+    if (saved !== null) return saved === 'true';
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('sinau_jawa_dark_mode');
-      if (saved !== null) return saved === 'true';
       return window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
     return false;
@@ -24,48 +27,33 @@ export function App() {
 
   const [isMutedState, setIsMutedState] = useState<boolean>(getMuted);
 
-  // Student profile & empty defaults on clean launch
+  // Student profile & empty defaults on clean launch (fresh start on new devices)
   const [studentName, setStudentName] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('sinau_jawa_student_name') || '';
-    }
-    return '';
+    return safeStorage.getItem(STORAGE_KEYS.STUDENT_NAME) || '';
   });
 
   const [starsCount, setStarsCount] = useState<number>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('sinau_jawa_stars');
-      return saved !== null ? parseInt(saved, 10) : 0;
-    }
-    return 0;
+    const saved = safeStorage.getItem(STORAGE_KEYS.STARS);
+    return saved !== null ? parseInt(saved, 10) : 0;
   });
 
   const [lastExamScore, setLastExamScore] = useState<number | null>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('sinau_jawa_last_exam_score');
-      return saved !== null ? parseInt(saved, 10) : null;
-    }
-    return null;
+    const saved = safeStorage.getItem(STORAGE_KEYS.LAST_EXAM_SCORE);
+    return saved !== null ? parseInt(saved, 10) : null;
   });
 
   const [completedTopics, setCompletedTopics] = useState<string[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('sinau_jawa_completed_topics');
-        return saved ? JSON.parse(saved) : [];
-      } catch {
-        return [];
-      }
+    try {
+      const saved = safeStorage.getItem(STORAGE_KEYS.COMPLETED_TOPICS);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
     }
-    return [];
   });
 
-  // First launch onboarding name modal
+  // First launch onboarding name modal (opens on clean fresh start)
   const [isNameModalOpen, setIsNameModalOpen] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return !localStorage.getItem('sinau_jawa_student_name');
-    }
-    return false;
+    return !safeStorage.getItem(STORAGE_KEYS.STUDENT_NAME);
   });
 
   const [quizTopicFilter, setQuizTopicFilter] = useState<string | null>(null);
@@ -73,33 +61,35 @@ export function App() {
   // Certificate Modal
   const [isCertOpen, setIsCertOpen] = useState<boolean>(false);
   const [certScore, setCertScore] = useState<number | null>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('sinau_jawa_last_exam_score');
-      return saved !== null ? parseInt(saved, 10) : null;
-    }
-    return null;
+    const saved = safeStorage.getItem(STORAGE_KEYS.LAST_EXAM_SCORE);
+    return saved !== null ? parseInt(saved, 10) : null;
   });
 
-  // Sync dark class on <html>
+  // Sync dark class on <html> & persist choice in localStorage
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add('dark');
-      localStorage.setItem('sinau_jawa_dark_mode', 'true');
+      safeStorage.setItem(STORAGE_KEYS.DARK_MODE, 'true');
     } else {
       document.documentElement.classList.remove('dark');
-      localStorage.setItem('sinau_jawa_dark_mode', 'false');
+      safeStorage.setItem(STORAGE_KEYS.DARK_MODE, 'false');
     }
   }, [isDark]);
 
-  // Persist stars count
+  // Persist stars count only on actual changes (avoids writing dirty '0' key before user action)
+  const isFirstRender = useRef(true);
   useEffect(() => {
-    localStorage.setItem('sinau_jawa_stars', starsCount.toString());
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    safeStorage.setItem(STORAGE_KEYS.STARS, starsCount.toString());
   }, [starsCount]);
 
   const handleEarnStar = (amount = 1) => {
     setStarsCount((prev) => {
       const next = prev + amount;
-      localStorage.setItem('sinau_jawa_stars', next.toString());
+      safeStorage.setItem(STORAGE_KEYS.STARS, next.toString());
       return next;
     });
   };
@@ -114,7 +104,7 @@ export function App() {
         updated = [...prev, topicId];
         handleEarnStar(5);
       }
-      localStorage.setItem('sinau_jawa_completed_topics', JSON.stringify(updated));
+      safeStorage.setItem(STORAGE_KEYS.COMPLETED_TOPICS, JSON.stringify(updated));
       return updated;
     });
   };
@@ -122,28 +112,30 @@ export function App() {
   const handleSaveExamScore = (score: number) => {
     setLastExamScore(score);
     setCertScore(score);
-    localStorage.setItem('sinau_jawa_last_exam_score', score.toString());
+    safeStorage.setItem(STORAGE_KEYS.LAST_EXAM_SCORE, score.toString());
     const earned = Math.max(1, Math.round(score / 10));
     handleEarnStar(earned);
   };
 
   const handleSaveStudentName = (name: string) => {
+    const trimmed = name.trim();
     const isFirstTime = !studentName;
-    setStudentName(name);
-    localStorage.setItem('sinau_jawa_student_name', name);
+    setStudentName(trimmed);
+    if (trimmed) {
+      safeStorage.setItem(STORAGE_KEYS.STUDENT_NAME, trimmed);
+    } else {
+      safeStorage.removeItem(STORAGE_KEYS.STUDENT_NAME);
+    }
     setIsNameModalOpen(false);
-    if (isFirstTime && name.trim()) {
+    if (isFirstTime && trimmed) {
       handleEarnStar(3);
     }
   };
 
   const handleResetProgress = () => {
-    if (window.confirm('Apa kowe yakin arep ngresiki kabeh data pasinaon? Jeneng, bintang, lan biji ujian bakal direset saka awal.')) {
+    if (window.confirm('Apa kowe yakin arep ngresiki kabeh data pasinaon? Jeneng, bintang, lan biji ujian bakal direset saka awal (fresh start).')) {
       playClick();
-      localStorage.removeItem('sinau_jawa_student_name');
-      localStorage.removeItem('sinau_jawa_stars');
-      localStorage.removeItem('sinau_jawa_last_exam_score');
-      localStorage.removeItem('sinau_jawa_completed_topics');
+      safeStorage.clearAllProgress();
       setStudentName('');
       setStarsCount(0);
       setLastExamScore(null);
@@ -226,13 +218,14 @@ export function App() {
 
           {activeTab === 'soal' && (
             <QuizSection
-              studentName={studentName || 'Bocah Pinter'}
+              studentName={studentName}
               onOpenCertificate={handleOpenCertificate}
               onEarnStar={() => handleEarnStar(1)}
               initialTopicFilter={quizTopicFilter}
               lastExamScore={lastExamScore}
               onSaveExamScore={handleSaveExamScore}
               onBack={() => setActiveTab('materi')}
+              onOpenNameModal={() => setIsNameModalOpen(true)}
             />
           )}
 
@@ -254,7 +247,11 @@ export function App() {
       <CertificateModal
         isOpen={isCertOpen}
         onClose={() => setIsCertOpen(false)}
-        studentName={studentName || 'Bocah Pinter'}
+        studentName={studentName}
+        onOpenNameModal={() => {
+          setIsCertOpen(false);
+          setIsNameModalOpen(true);
+        }}
         score={certScore ?? lastExamScore}
         onGoToQuiz={() => {
           setIsCertOpen(false);

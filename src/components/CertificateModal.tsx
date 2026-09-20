@@ -6,6 +6,7 @@ interface CertificateModalProps {
   isOpen: boolean;
   onClose: () => void;
   studentName: string;
+  onOpenNameModal?: () => void;
   score: number | null;
   onGoToQuiz?: () => void;
 }
@@ -14,6 +15,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
   isOpen,
   onClose,
   studentName,
+  onOpenNameModal,
   score,
   onGoToQuiz
 }) => {
@@ -128,9 +130,23 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
 
             {/* Recipient Name */}
             <div className="py-1.5 sm:py-2 border-b-2 border-amber-600/40 inline-block px-4 sm:px-8 mb-3 sm:mb-4">
-              <h3 className="font-heading font-bold text-2xl sm:text-4xl text-emerald-800 tracking-wide">
-                {studentName.trim() || 'Siswa Berprestasi'}
-              </h3>
+              {studentName.trim() ? (
+                <h3 className="font-heading font-bold text-2xl sm:text-4xl text-emerald-800 tracking-wide">
+                  {studentName.trim()}
+                </h3>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClick();
+                    if (onOpenNameModal) onOpenNameModal();
+                  }}
+                  className="px-4 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-amber-900 font-heading font-bold text-base sm:text-xl inline-flex items-center gap-2 cursor-pointer no-print"
+                  title="Klik kanggo ngisi jenengmu dhisik"
+                >
+                  <span>[Klik Kanggo Ngisi Jeneng Siswa]</span>
+                </button>
+              )}
             </div>
 
             <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto leading-relaxed font-sans mb-4 sm:mb-6">

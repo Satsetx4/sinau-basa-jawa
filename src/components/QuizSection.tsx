@@ -31,6 +31,7 @@ interface QuizSectionProps {
   lastExamScore?: number | null;
   onSaveExamScore?: (score: number) => void;
   onBack?: () => void;
+  onOpenNameModal?: () => void;
 }
 
 export const QuizSection: React.FC<QuizSectionProps> = ({
@@ -40,7 +41,8 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
   initialTopicFilter = null,
   lastExamScore = null,
   onSaveExamScore,
-  onBack
+  onBack,
+  onOpenNameModal
 }) => {
   const [quizMode, setQuizMode] = useState<'latihan' | 'ujian'>('latihan');
   const [selectedTopic, setSelectedTopic] = useState<string>(initialTopicFilter || 'all');
@@ -338,7 +340,21 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
                 {results.percentage >= 80 ? 'Pinter Banget, Bocah Hebat!' : results.percentage >= 60 ? 'Bagus! Terus Sinau ya!' : 'Ayo Semangat Sinau Maneh!'}
               </h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-sans">
-                Jeneng Siswa: <strong className="text-slate-800 dark:text-slate-200">{studentName}</strong>
+                Jeneng Siswa:{' '}
+                {studentName.trim() ? (
+                  <strong className="text-slate-800 dark:text-slate-200">{studentName.trim()}</strong>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playClick();
+                      if (onOpenNameModal) onOpenNameModal();
+                    }}
+                    className="underline text-emerald-600 dark:text-emerald-400 font-semibold cursor-pointer"
+                  >
+                    [Klik kanggo nulis jenengmu]
+                  </button>
+                )}
               </p>
             </div>
 
@@ -383,10 +399,10 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
                 </h4>
                 <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-300 leading-relaxed font-sans">
                   {results.percentage >= 80
-                    ? `Selamat ya ${studentName}! Kowe wis wasis banget babagan Swara A Jejeg, Unggah-Ungguh Krama, lan Jeneng Anggota Awak. Pertahankan prestasimu!`
+                    ? `Selamat ya${studentName.trim() ? ` ${studentName.trim()}` : ''}! Kowe wis wasis banget babagan Swara A Jejeg, Unggah-Ungguh Krama, lan Jeneng Anggota Awak. Pertahankan prestasimu!`
                     : results.percentage >= 60
-                    ? `Wis apik ${studentName}, nanging kudu luwih teliti maneh mbedakake Swara A Jejeg/Miring lan Konsonan TH/DH ya. Ayo gladhen maneh!`
-                    : `Ora apa-apa ${studentName}, sinau iku proses. Wacanen materi ing Bab 1 nganti 6 lan gatekna pituduh Bu Guru, mesthi sesuk entuk nilai 100!`}
+                    ? `Wis apik${studentName.trim() ? ` ${studentName.trim()}` : ''}, nanging kudu luwih teliti maneh mbedakake Swara A Jejeg/Miring lan Konsonan TH/DH ya. Ayo gladhen maneh!`
+                    : `Ora apa-apa${studentName.trim() ? ` ${studentName.trim()}` : ''}, sinau iku proses. Wacanen materi ing Bab 1 nganti 6 lan gatekna pituduh Bu Guru, mesthi sesuk entuk nilai 100!`}
                 </p>
               </div>
             </div>
