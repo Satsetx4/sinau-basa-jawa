@@ -170,7 +170,7 @@ export const KamusSection: React.FC<KamusSectionProps> = ({ onBack }) => {
                 </div>
 
                 {/* Example sentence */}
-                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-750/50 border border-slate-200/60 dark:border-slate-700/60">
+                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">
                     Conto Ukara:
                   </span>

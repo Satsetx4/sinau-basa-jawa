@@ -136,7 +136,7 @@ export const BANK_SOAL: QuestionItem[] = [
     ],
     correctAnswer: 2,
     explanation: 'Wangsulan sing bener yaiku "nedha" (utawa dhahar kanggo krama inggil). Tembung ngoko "mangan" yen didadekake basa krama yaiku "nedha" (tuladhane: kula badhe nedha). Pilihan liyane: ngunjuk = ngombe, sare = turu, tindak = lunga.',
-    teacherTip: 'Ayo apalna: mangan = nedha, ngombe = ngunjuk, turu = sare!',
+    teacherTip: 'Ayo apalna: mangan = nedha, turu = tilem. Dhahar lan sare kanggo wong sing diajeni.',
     audioText: 'Basa krama saka tembung mangan yaiku nedha.'
   },
   {
@@ -146,14 +146,14 @@ export const BANK_SOAL: QuestionItem[] = [
     question: 'Basa Krama saka tembung ngoko "turu" yaiku ...',
     options: [
       'rawuh',
-      'sare',
+      'tilem',
       'lenggah',
       'matur'
     ],
     correctAnswer: 1,
-    explanation: 'Wangsulan sing bener yaiku "sare". Tembung krama kanggo turu yaiku sare (tuladhane: Simbah nembe sare). Pilihan liyane: rawuh = teka, lenggah = lungguh, matur = ngomong.',
-    teacherTip: 'Yen simbah lagi istirahat ing kamar, ukarane: Simbah nembe sare.',
-    audioText: 'Basa krama saka tembung turu yaiku sare.'
+    explanation: 'Wangsulan sing bener yaiku "tilem" kanggo awake dhewe. "Sare" iku krama inggil kanggo wong sing diajeni, kayata Simbah. Pilihan liyane: rawuh = teka, lenggah = lungguh, matur = ngomong.',
+    teacherTip: 'Kula badhe tilem; Simbah nembe sare.',
+    audioText: 'Basa krama saka tembung turu yaiku tilem.'
   },
   {
     id: 10,

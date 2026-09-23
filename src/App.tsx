@@ -1,19 +1,40 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { Navbar } from './components/Navbar';
 import { HeroBanner } from './components/HeroBanner';
-import { MateriSection } from './components/MateriSection';
-import { AnggotaAwak } from './components/AnggotaAwak';
-import { GamesSection } from './components/GamesSection';
-import { QuizSection } from './components/QuizSection';
-import { KamusSection } from './components/KamusSection';
 import { CertificateModal } from './components/CertificateModal';
 import { NameModal } from './components/NameModal';
 import { Footer } from './components/Footer';
 import { setMuted, getMuted, playClick } from './lib/sound';
 import { safeStorage, STORAGE_KEYS } from './lib/storage';
+import { BANK_SOAL } from './data/bankSoalData';
+import { MATERI_MODULES } from './data/materiData';
+import { ExamResult, isCertificateEligible, parseExamResult } from './domain/assessment';
+import { grantAchievement, parseStars } from './domain/progress';
+
+const MateriSection = lazy(() => import('./components/MateriSection').then(module => ({ default: module.MateriSection })));
+const AnggotaAwak = lazy(() => import('./components/AnggotaAwak').then(module => ({ default: module.AnggotaAwak })));
+const GamesSection = lazy(() => import('./components/GamesSection').then(module => ({ default: module.GamesSection })));
+const QuizSection = lazy(() => import('./components/QuizSection').then(module => ({ default: module.QuizSection })));
+const KamusSection = lazy(() => import('./components/KamusSection').then(module => ({ default: module.KamusSection })));
+
+const TABS = ['materi', 'awak', 'dolanan', 'soal', 'kamus'];
+
+function readStringList(key: string): string[] {
+  try {
+    const value: unknown = JSON.parse(safeStorage.getItem(key) || '[]');
+    return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+  } catch { return []; }
+}
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<string>('materi');
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    const saved = safeStorage.getItem(STORAGE_KEYS.ACTIVE_TAB);
+    return saved && TABS.includes(saved) ? saved : 'materi';
+  });
+  const [activeTopic, setActiveTopic] = useState<string>(() => {
+    const saved = safeStorage.getItem(STORAGE_KEYS.ACTIVE_TOPIC);
+    return MATERI_MODULES.some(module => module.id === saved) ? saved! : MATERI_MODULES[0].id;
+  });
 
   // Dark/Light mode theme state
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -33,23 +54,22 @@ export function App() {
   });
 
   const [starsCount, setStarsCount] = useState<number>(() => {
-    const saved = safeStorage.getItem(STORAGE_KEYS.STARS);
-    return saved !== null ? parseInt(saved, 10) : 0;
+    return parseStars(safeStorage.getItem(STORAGE_KEYS.STARS));
   });
 
-  const [lastExamScore, setLastExamScore] = useState<number | null>(() => {
-    const saved = safeStorage.getItem(STORAGE_KEYS.LAST_EXAM_SCORE);
-    return saved !== null ? parseInt(saved, 10) : null;
-  });
+  const [examResult, setExamResult] = useState<ExamResult | null>(() =>
+    parseExamResult(safeStorage.getItem(STORAGE_KEYS.EXAM_RESULT), BANK_SOAL));
 
   const [completedTopics, setCompletedTopics] = useState<string[]>(() => {
-    try {
-      const saved = safeStorage.getItem(STORAGE_KEYS.COMPLETED_TOPICS);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
+    return readStringList(STORAGE_KEYS.COMPLETED_TOPICS).filter(id => MATERI_MODULES.some(module => module.id === id));
   });
+  const completedTopicsRef = useRef(completedTopics);
+  const achievementsRef = useRef(new Set([
+    ...readStringList(STORAGE_KEYS.ACHIEVEMENTS),
+    ...completedTopics.map(id => `topic:${id}`),
+    ...(studentName ? ['profile:first-name'] : []),
+  ]));
+  const starsRef = useRef(starsCount);
 
   // First launch onboarding name modal (opens on clean fresh start)
   const [isNameModalOpen, setIsNameModalOpen] = useState<boolean>(() => {
@@ -57,13 +77,10 @@ export function App() {
   });
 
   const [quizTopicFilter, setQuizTopicFilter] = useState<string | null>(null);
+  const [quizSession, setQuizSession] = useState(0);
 
   // Certificate Modal
   const [isCertOpen, setIsCertOpen] = useState<boolean>(false);
-  const [certScore, setCertScore] = useState<number | null>(() => {
-    const saved = safeStorage.getItem(STORAGE_KEYS.LAST_EXAM_SCORE);
-    return saved !== null ? parseInt(saved, 10) : null;
-  });
 
   // Sync dark class on <html> & persist choice in localStorage
   useEffect(() => {
@@ -86,35 +103,36 @@ export function App() {
     safeStorage.setItem(STORAGE_KEYS.STARS, starsCount.toString());
   }, [starsCount]);
 
-  const handleEarnStar = (amount = 1) => {
-    setStarsCount((prev) => {
-      const next = prev + amount;
-      safeStorage.setItem(STORAGE_KEYS.STARS, next.toString());
-      return next;
-    });
+  useEffect(() => {
+    if (safeStorage.getItem(STORAGE_KEYS.ACHIEVEMENTS) === null && achievementsRef.current.size) {
+      safeStorage.setItem(STORAGE_KEYS.ACHIEVEMENTS, JSON.stringify([...achievementsRef.current]));
+    }
+  }, []);
+
+  const handleEarnStar = (achievementId: string, amount = 1) => {
+    const next = grantAchievement({ stars: starsRef.current, achievements: [...achievementsRef.current] }, achievementId, amount);
+    if (next.stars === starsRef.current) return;
+    starsRef.current = next.stars;
+    achievementsRef.current = new Set(next.achievements);
+    safeStorage.setItem(STORAGE_KEYS.ACHIEVEMENTS, JSON.stringify(next.achievements));
+    setStarsCount(next.stars);
   };
 
   const handleToggleCompleteTopic = (topicId: string) => {
-    setCompletedTopics((prev) => {
-      const isCompleted = prev.includes(topicId);
-      let updated: string[];
-      if (isCompleted) {
-        updated = prev.filter((id) => id !== topicId);
-      } else {
-        updated = [...prev, topicId];
-        handleEarnStar(5);
-      }
-      safeStorage.setItem(STORAGE_KEYS.COMPLETED_TOPICS, JSON.stringify(updated));
-      return updated;
-    });
+    const previous = completedTopicsRef.current;
+    const isCompleted = previous.includes(topicId);
+    const updated = isCompleted ? previous.filter(id => id !== topicId) : [...previous, topicId];
+    completedTopicsRef.current = updated;
+    setCompletedTopics(updated);
+    safeStorage.setItem(STORAGE_KEYS.COMPLETED_TOPICS, JSON.stringify(updated));
+    if (!isCompleted) handleEarnStar(`topic:${topicId}`, 5);
   };
 
-  const handleSaveExamScore = (score: number) => {
-    setLastExamScore(score);
-    setCertScore(score);
-    safeStorage.setItem(STORAGE_KEYS.LAST_EXAM_SCORE, score.toString());
-    const earned = Math.max(1, Math.round(score / 10));
-    handleEarnStar(earned);
+  const handleSaveExamResult = (result: ExamResult) => {
+    if (result.mode !== 'exam' || result.topicId !== null || result.totalQuestions !== BANK_SOAL.length) return;
+    setExamResult(result);
+    safeStorage.setItem(STORAGE_KEYS.EXAM_RESULT, JSON.stringify(result));
+    handleEarnStar('exam:first-completion', Math.max(1, Math.round(result.score / 10)));
   };
 
   const handleSaveStudentName = (name: string) => {
@@ -128,7 +146,7 @@ export function App() {
     }
     setIsNameModalOpen(false);
     if (isFirstTime && trimmed) {
-      handleEarnStar(3);
+      handleEarnStar('profile:first-name', 3);
     }
   };
 
@@ -138,9 +156,14 @@ export function App() {
       safeStorage.clearAllProgress();
       setStudentName('');
       setStarsCount(0);
-      setLastExamScore(null);
-      setCertScore(null);
+      starsRef.current = 0;
+      setExamResult(null);
       setCompletedTopics([]);
+      completedTopicsRef.current = [];
+      achievementsRef.current.clear();
+      setQuizTopicFilter(null);
+      setActiveTab('materi');
+      setActiveTopic(MATERI_MODULES[0].id);
       setIsNameModalOpen(true);
     }
   };
@@ -150,9 +173,17 @@ export function App() {
     setActiveTab('soal');
   };
 
-  const handleOpenCertificate = (score: number) => {
-    setCertScore(score);
-    setIsCertOpen(true);
+  const handleOpenCertificate = () => {
+    if (isCertificateEligible(examResult, BANK_SOAL.length)) setIsCertOpen(true);
+  };
+
+  const handleNavigate = (tab: string) => {
+    if (tab === 'soal') {
+      setQuizTopicFilter(null);
+      setQuizSession(previous => previous + 1);
+      safeStorage.removeItem(STORAGE_KEYS.QUIZ_DRAFT);
+    }
+    setActiveTab(tab);
   };
 
   const handleToggleMute = (muted: boolean) => {
@@ -163,6 +194,7 @@ export function App() {
   // Scroll to top on tab change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    safeStorage.setItem(STORAGE_KEYS.ACTIVE_TAB, activeTab);
   }, [activeTab]);
 
   return (
@@ -170,7 +202,7 @@ export function App() {
       {/* Top & Mobile Navigation */}
       <Navbar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleNavigate}
         isDark={isDark}
         setIsDark={setIsDark}
         isMuted={isMutedState}
@@ -186,16 +218,23 @@ export function App() {
         {/* Welcoming Hero Banner only on Materi/Beranda */}
         {activeTab === 'materi' && (
           <HeroBanner
-            setActiveTab={setActiveTab}
+            setActiveTab={handleNavigate}
+            onOpenTopic={(topicId) => {
+              safeStorage.setItem(STORAGE_KEYS.ACTIVE_TOPIC, topicId);
+              setActiveTopic(topicId);
+              document.getElementById('materi-content')?.scrollIntoView({ behavior: 'smooth' });
+            }}
             studentName={studentName}
             onOpenNameModal={() => setIsNameModalOpen(true)}
           />
         )}
 
         {/* Dynamic Tab Views */}
+        <Suspense fallback={<div role="status" className="min-h-48 p-8 text-center text-slate-600 dark:text-slate-300">Mbukak kaca pasinaon…</div>}>
         <div className="transition-opacity duration-300">
           {activeTab === 'materi' && (
             <MateriSection
+              key={activeTopic}
               onStartQuizTopic={handleStartQuizTopic}
               completedTopics={completedTopics}
               onToggleCompleteTopic={handleToggleCompleteTopic}
@@ -204,26 +243,27 @@ export function App() {
 
           {activeTab === 'awak' && (
             <AnggotaAwak
-              onEarnStar={() => handleEarnStar(1)}
+              onEarnStar={(id) => handleEarnStar(`awak:${id}`)}
               onBack={() => setActiveTab('materi')}
             />
           )}
 
           {activeTab === 'dolanan' && (
             <GamesSection
-              onEarnStar={() => handleEarnStar(1)}
+              onEarnStar={(id) => handleEarnStar(`game:${id}`)}
               onBack={() => setActiveTab('materi')}
             />
           )}
 
           {activeTab === 'soal' && (
             <QuizSection
+              key={`${quizTopicFilter || 'all'}:${quizSession}`}
               studentName={studentName}
               onOpenCertificate={handleOpenCertificate}
-              onEarnStar={() => handleEarnStar(1)}
+              onEarnStar={(id) => handleEarnStar(`practice:${id}`)}
               initialTopicFilter={quizTopicFilter}
-              lastExamScore={lastExamScore}
-              onSaveExamScore={handleSaveExamScore}
+              lastExamResult={examResult}
+              onSaveExamResult={handleSaveExamResult}
               onBack={() => setActiveTab('materi')}
               onOpenNameModal={() => setIsNameModalOpen(true)}
             />
@@ -235,11 +275,12 @@ export function App() {
             />
           )}
         </div>
+        </Suspense>
       </main>
 
       {/* Footer with Reset Progress Action */}
       <Footer
-        setActiveTab={setActiveTab}
+        setActiveTab={handleNavigate}
         onResetProgress={handleResetProgress}
       />
 
@@ -252,22 +293,22 @@ export function App() {
           setIsCertOpen(false);
           setIsNameModalOpen(true);
         }}
-        score={certScore ?? lastExamScore}
+        result={examResult}
         onGoToQuiz={() => {
           setIsCertOpen(false);
-          setActiveTab('soal');
+          handleNavigate('soal');
         }}
       />
 
       {/* Child Onboarding & Name Personalization Modal */}
-      <NameModal
+      {isNameModalOpen && <NameModal
         isOpen={isNameModalOpen}
         currentName={studentName}
         onSaveName={handleSaveStudentName}
         onClose={() => setIsNameModalOpen(false)}
         onResetProgress={studentName ? handleResetProgress : undefined}
         isFirstLaunch={!studentName}
-      />
+      />}
     </div>
   );
 }

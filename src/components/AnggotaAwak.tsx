@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   Volume2,
   Sparkles,
@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { playClick, playCorrect, playWrong } from '../lib/sound';
 import { speakText } from '../lib/speech';
-import wayangSiswaImg from '../assets/wayang-siswa.jpg';
+import wayangSiswaImg from '../assets/wayang-siswa.webp';
 
 interface BodyPart {
   id: string;
@@ -124,7 +124,7 @@ const BODY_PARTS: BodyPart[] = [
 ];
 
 interface AnggotaAwakProps {
-  onEarnStar?: () => void;
+  onEarnStar?: (id: string) => void;
   onBack?: () => void;
 }
 
@@ -144,22 +144,21 @@ export const AnggotaAwak: React.FC<AnggotaAwakProps> = ({ onEarnStar, onBack }) 
   const CurrentQuizIcon = currentQuizPart.icon;
 
   // Generate 3 randomized multiple-choice options for the interactive guessing game
-  const quizOptions = useMemo(() => {
+  const quizOptions = (() => {
     const correct = currentQuizPart.kramaInggil;
     const others = BODY_PARTS
       .filter((p) => p.kramaInggil !== correct)
       .map((p) => p.kramaInggil)
-      .sort(() => Math.random() - 0.5)
       .slice(0, 2);
-    return [correct, ...others].sort(() => Math.random() - 0.5);
-  }, [quizQuestionIndex, currentQuizPart]);
+    return [correct, ...others];
+  })();
 
   const handleQuizAnswer = (option: string) => {
     if (quizSelectedOption !== null) return;
     setQuizSelectedOption(option);
     if (option === currentQuizPart.kramaInggil) {
       playCorrect();
-      if (onEarnStar) onEarnStar();
+      if (onEarnStar) onEarnStar(`body:${currentQuizPart.ngoko}`);
       speakText(`Bener! Basa krama inggile ${currentQuizPart.ngoko} yaiku ${currentQuizPart.kramaInggil}`);
     } else {
       playWrong();

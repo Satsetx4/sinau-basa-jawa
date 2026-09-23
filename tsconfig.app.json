@@ -6,6 +6,7 @@
     "module": "esnext",
     "types": ["vite/client"],
     "skipLibCheck": true,
+    "strict": true,
     "moduleResolution": "bundler",
     "noEmit": true,
     "jsx": "react-jsx",
@@ -15,4 +16,3 @@
   },
   "include": ["src"]
 }
-

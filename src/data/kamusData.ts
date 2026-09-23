@@ -23,7 +23,7 @@ export const KAMUS_DATA: KamusEntry[] = [
 
   // Pakaryan & Tumindak
   { id: '11', indonesia: 'Makan', ngoko: 'mangan', krama: 'nedha', kramaInggil: 'dhahar', contoh: 'Kula nedha sekul, Bapak dhahar sekul liwet.', kategori: 'Pakaryan' },
-  { id: '12', indonesia: 'Minum', ngoko: 'ngombe', krama: 'ngombe', kramaInggil: 'ngunjuk', contoh: 'Simbah ngunjuk wedang jahe ing pendhapa.', kategori: 'Pakaryan' },
+  { id: '12', indonesia: 'Minum', ngoko: 'ngombe', krama: 'nginum', kramaInggil: 'ngunjuk', contoh: 'Simbah ngunjuk wedang jahe ing pendhapa.', kategori: 'Pakaryan' },
   { id: '13', indonesia: 'Tidur', ngoko: 'turu', krama: 'tilem', kramaInggil: 'sare', contoh: 'Adik tilem jam wolu, Simbah sampun sare.', kategori: 'Pakaryan' },
   { id: '14', indonesia: 'Pergi', ngoko: 'lunga', krama: 'kesah', kramaInggil: 'tindak', contoh: 'Ibu tindak dhateng peken mundhut janganan.', kategori: 'Pakaryan' },
   { id: '15', indonesia: 'Datang / Tiba', ngoko: 'teka', krama: 'dugi', kramaInggil: 'rawuh', contoh: 'Pak Guru rawuh ing sekolah nitih pit motor.', kategori: 'Pakaryan' },

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Sparkles, Check, X, RotateCcw, AlertTriangle, Gift, Star, ArrowRight } from 'lucide-react';
 import { playClick } from '../lib/sound';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 
 interface NameModalProps {
   isOpen: boolean;
@@ -21,11 +22,7 @@ export const NameModal: React.FC<NameModalProps> = ({
 }) => {
   const [nameInput, setNameInput] = useState(currentName);
   const [errorMsg, setErrorMsg] = useState('');
-
-  useEffect(() => {
-    setNameInput(currentName);
-    setErrorMsg('');
-  }, [currentName, isOpen]);
+  const dialogRef = useDialogFocus(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -47,7 +44,7 @@ export const NameModal: React.FC<NameModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border-2 border-emerald-500/30 overflow-hidden p-6 sm:p-8 text-center space-y-5">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="name-modal-title" tabIndex={-1} className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border-2 border-emerald-500/30 overflow-hidden p-6 sm:p-8 text-center space-y-5">
         {/* Top Close Button (only if not forced first-launch or child wants to close) */}
         {!isFirstLaunch && (
           <button
@@ -73,13 +70,13 @@ export const NameModal: React.FC<NameModalProps> = ({
             <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
             <span>{isFirstLaunch ? 'Sugeng Rawuh ing Sinau Jawa!' : 'Profil Siswa'}</span>
           </div>
-          <h3 className="font-heading font-bold text-2xl text-slate-900 dark:text-white">
+          <h3 id="name-modal-title" className="font-heading font-bold text-2xl text-slate-900 dark:text-white">
             {isFirstLaunch ? 'Sapa Jenengmu, Cah Pinter?' : 'Ganti Jeneng Siswa'}
           </h3>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-sans max-w-sm mx-auto leading-relaxed">
             {isFirstLaunch
-              ? 'Tulis jenengmu supaya piagam sertifikat resmi lan rapor pasinaonmu kacathet nganggo jeneng aslimu!'
-              : 'Jeneng iki bakal katulis kanthi resmi ing piagam sertifikat lan rapor pasinaon.'}
+              ? 'Yen gelem, tulis jeneng panggilan kanggo piagam latihanmu. Jeneng iki mung disimpen ing browser iki.'
+              : 'Jeneng panggilan iki bakal katulis ing piagam latihanmu lan disimpen ing browser iki.'}
           </p>
         </div>
 
@@ -88,13 +85,16 @@ export const NameModal: React.FC<NameModalProps> = ({
           <div className="relative">
             <input
               type="text"
+              aria-label="Jeneng panggilan"
+              aria-invalid={Boolean(errorMsg)}
+              aria-describedby={errorMsg ? 'name-error' : undefined}
               autoFocus
               value={nameInput}
               onChange={(e) => {
                 setNameInput(e.target.value);
                 if (errorMsg) setErrorMsg('');
               }}
-              placeholder="Tulis jeneng jangkepmu ing kene..."
+              placeholder="Tulis jeneng panggilanmu..."
               className="w-full text-center font-heading font-bold text-lg sm:text-xl py-3 px-4 rounded-2xl border-2 border-emerald-400/70 focus:border-emerald-500 bg-emerald-50/30 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition-all shadow-inner"
               maxLength={32}
             />
@@ -102,6 +102,7 @@ export const NameModal: React.FC<NameModalProps> = ({
               <button
                 type="button"
                 onClick={() => setNameInput('')}
+                aria-label="Busak isian jeneng"
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
                 <X className="w-4 h-4" />
@@ -110,7 +111,7 @@ export const NameModal: React.FC<NameModalProps> = ({
           </div>
 
           {errorMsg && (
-            <p className="text-xs font-semibold text-rose-500 animate-shake flex items-center justify-center gap-1.5">
+            <p id="name-error" role="alert" className="text-xs font-semibold text-rose-500 animate-shake flex items-center justify-center gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
               <span>{errorMsg}</span>
             </p>

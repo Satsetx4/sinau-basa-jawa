@@ -1,3 +1,12 @@
+import { KAMUS_DATA } from './kamusData';
+
+const kramaWords = ['mangan', 'ngombe', 'turu', 'lunga', 'teka', 'ngomong', 'lungguh'];
+export const KRAMA_COMPARISON_ROWS = kramaWords.map(word => {
+  const entry = KAMUS_DATA.find(item => item.ngoko === word);
+  if (!entry) throw new Error(`Kosakata ora tinemu: ${word}`);
+  return { left: entry.ngoko, right: `${entry.krama} / ${entry.kramaInggil} (inggil)`, note: entry.indonesia };
+});
+
 export interface WordSample {
   word: string;
   spoken: string;
@@ -54,7 +63,7 @@ export const MATERI_MODULES: TopicModule[] = [
           { word: 'lara', spoken: 'loro', type: 'A Jejeg', meaning: 'Sakit / pedih' },
           { word: 'mata', spoken: 'moto', type: 'A Jejeg', meaning: 'Mata (alat penglihatan)' },
           { word: 'kanca', spoken: 'konco', type: 'A Jejeg', meaning: 'Teman / kawan' },
-          { word: 'toko', spoken: 'toko', type: 'A Jejeg', meaning: 'Toko / warung' }
+          { word: 'bata', spoken: 'boto', type: 'A Jejeg', meaning: 'Batu bata' }
         ]
       },
       {
@@ -124,17 +133,8 @@ export const MATERI_MODULES: TopicModule[] = [
         description: 'Tembung-tembung penting sing asring dienggo ing pacelathon padinan:',
         comparison: {
           col1Title: 'Basa Ngoko',
-          col2Title: 'Basa Krama',
-          rows: [
-            { left: 'mangan', right: 'nedha / dhahar', note: 'Makan' },
-            { left: 'ngombe', right: 'ngunjuk', note: 'Minum' },
-            { left: 'turu', right: 'sare', note: 'Tidur' },
-            { left: 'lunga', right: 'tindak / kesah', note: 'Pergi' },
-            { left: 'teka', right: 'rawuh / dugi', note: 'Datang' },
-            { left: 'ngomong', right: 'matur / ngendika', note: 'Berbicara' },
-            { left: 'lungguh', right: 'lenggah', note: 'Duduk' },
-            { left: 'mlaku', right: 'mlampah', note: 'Berjalan' }
-          ]
+          col2Title: 'Krama / Krama Inggil',
+          rows: [...KRAMA_COMPARISON_ROWS, { left: 'mlaku', right: 'mlampah', note: 'Berjalan' }]
         }
       },
       {
@@ -145,7 +145,7 @@ export const MATERI_MODULES: TopicModule[] = [
           col2Title: 'Ukara Krama (Karo Guru / Wong Tuwa)',
           rows: [
             { left: 'Aku arep mangan.', right: 'Kula badhe nedha.' },
-            { left: 'Aku arep ngombe.', right: 'Kula badhe ngunjuk.' },
+            { left: 'Aku arep ngombe.', right: 'Kula badhe nginum.' },
             { left: 'Kowe wis turu?', right: 'Panjenengan sampun sare?' },
             { left: 'Kowe arep menyang ngendi?', right: 'Bu Guru badhe tindak pundi?' },
             { left: 'Aku arep dolanan.', right: 'Bu, kula nyuwun pangapunten.' }

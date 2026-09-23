@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { MATERI_MODULES, TopicModule } from '../data/materiData';
-import { Volume2, Sparkles, CheckCircle, ArrowRight, BookOpen, Lightbulb, Star } from 'lucide-react';
+import { MATERI_MODULES } from '../data/materiData';
+import { Volume2, Sparkles, CheckCircle, ArrowRight, BookOpen, Lightbulb } from 'lucide-react';
 import { playClick } from '../lib/sound';
 import { speakText } from '../lib/speech';
+import { safeStorage, STORAGE_KEYS } from '../lib/storage';
 
 interface MateriSectionProps {
   onStartQuizTopic: (topicId: string) => void;
@@ -15,7 +16,10 @@ export const MateriSection: React.FC<MateriSectionProps> = ({
   completedTopics = [],
   onToggleCompleteTopic
 }) => {
-  const [selectedTopicId, setSelectedTopicId] = useState<string>(MATERI_MODULES[0].id);
+  const [selectedTopicId, setSelectedTopicId] = useState<string>(() => {
+    const saved = safeStorage.getItem(STORAGE_KEYS.ACTIVE_TOPIC);
+    return MATERI_MODULES.some(module => module.id === saved) ? saved! : MATERI_MODULES[0].id;
+  });
 
   const currentModule = MATERI_MODULES.find(m => m.id === selectedTopicId) || MATERI_MODULES[0];
 
@@ -25,19 +29,19 @@ export const MateriSection: React.FC<MateriSectionProps> = ({
   };
 
   return (
-    <section className="py-8 text-left max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="materi-content" lang="jv" className="py-8 text-left max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Section Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-heading font-semibold mb-2">
             <BookOpen className="w-3.5 h-3.5" />
-            <span>Materi Pelajaran Resmi Basa Jawa Kelas 3 SD</span>
+            <span>Materi Pasinaon Basa Jawa Kelas 3 SD</span>
           </div>
           <h2 className="font-heading font-bold text-2xl sm:text-3xl text-slate-900 dark:text-white">
             Wulangan & Nyimak Swara Tembung
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
-            Pilihen topik pasinaon ing ngisor iki. Klik tombol speaker ing saben tembung kanggo ngrungokake lafal pamaca sing bener lan trep!
+            Pilihen topik pasinaon ing ngisor iki. Swara saka browser mung pandhuan tambahan; lafal perlu dicocogake karo guru utawa penutur Basa Jawa.
           </p>
         </div>
 
@@ -64,6 +68,7 @@ export const MateriSection: React.FC<MateriSectionProps> = ({
               key={m.id}
               onClick={() => {
                 setSelectedTopicId(m.id);
+                safeStorage.setItem(STORAGE_KEYS.ACTIVE_TOPIC, m.id);
                 playClick();
               }}
               className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 cursor-pointer ${
@@ -134,7 +139,7 @@ export const MateriSection: React.FC<MateriSectionProps> = ({
           </div>
           <div>
             <h4 className="font-heading font-bold text-xs sm:text-sm text-amber-900 dark:text-amber-200 mb-0.5">
-              Paweling Guru SD (Tips Gampang Ngelingi)
+              Paweling Pasinaon (Tips Gampang Ngelingi)
             </h4>
             <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-300 font-sans leading-relaxed">
               {currentModule.teacherNote}
@@ -160,7 +165,7 @@ export const MateriSection: React.FC<MateriSectionProps> = ({
                   {sec.items.map((item, wIdx) => (
                     <div
                       key={wIdx}
-                      className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-750/70 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700 hover:border-emerald-500/60 dark:hover:border-emerald-500/60 transition-all flex flex-col justify-between gap-3 group shadow-sm"
+                      className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700 hover:border-emerald-500/60 dark:hover:border-emerald-500/60 transition-all flex flex-col justify-between gap-3 group shadow-sm"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
@@ -297,9 +302,7 @@ export const MateriSection: React.FC<MateriSectionProps> = ({
                     'Wis Ditandhani Rampung'
                   ) : (
                     <>
-                      <span>Tandhani Rampung Sinau (+5</span>
-                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500 inline" />
-                      <span>)</span>
+                      <span>Tandhani Rampung Sinau</span>
                     </>
                   )}
                 </span>
