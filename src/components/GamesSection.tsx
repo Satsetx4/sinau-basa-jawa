@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { PILAH_WORDS, SUKU_KATA_GAMES, SCENARIO_DIALOGS, PilahWord, SukuKataItem, ScenarioDialog } from '../data/gamesData';
+import { PILAH_WORDS, SUKU_KATA_GAMES, SCENARIO_DIALOGS } from '../data/gamesData';
 import {
   Volume2,
   Sparkles,
-  Check,
   RefreshCw,
   Trophy,
   ArrowRight,
@@ -22,8 +21,10 @@ import { playClick, playCorrect, playWrong, playFanfare } from '../lib/sound';
 import { speakText } from '../lib/speech';
 import confetti from 'canvas-confetti';
 
+const shuffledChunks = (chunks: string[]) => [...chunks].sort(() => Math.random() - 0.5);
+
 interface GamesSectionProps {
-  onEarnStar: () => void;
+  onEarnStar: (id: string) => void;
   onBack?: () => void;
 }
 
@@ -40,7 +41,7 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar, onBack }
   const [sukuIndex, setSukuIndex] = useState(0);
   const [sukuScore, setSukuScore] = useState(0);
   const [assembledChunks, setAssembledChunks] = useState<string[]>([]);
-  const [availableChunks, setAvailableChunks] = useState<string[]>([]);
+  const [availableChunks, setAvailableChunks] = useState<string[]>(() => shuffledChunks(SUKU_KATA_GAMES[0].chunks));
   const [sukuFeedback, setSukuFeedback] = useState<{ isCorrect: boolean; message: string } | null>(null);
   const [sukuCompleted, setSukuCompleted] = useState(false);
 
@@ -50,17 +51,7 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar, onBack }
   const [selectedDialogOpt, setSelectedDialogOpt] = useState<number | null>(null);
   const [dialogCompleted, setDialogCompleted] = useState(false);
 
-  // Initialize/Reset Game 2 on start or word change
   const currentSukuGame = SUKU_KATA_GAMES[sukuIndex];
-  React.useEffect(() => {
-    if (currentSukuGame) {
-      // Shuffle chunks
-      const shuffled = [...currentSukuGame.chunks].sort(() => Math.random() - 0.5);
-      setAvailableChunks(shuffled);
-      setAssembledChunks([]);
-      setSukuFeedback(null);
-    }
-  }, [sukuIndex]);
 
   // --- Handlers for Game 1: Pilah Swara ---
   const currentPilahWord = PILAH_WORDS[pilahIndex];
@@ -71,7 +62,7 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar, onBack }
     if (isCorrect) {
       playCorrect();
       setPilahScore((prev) => prev + 1);
-      onEarnStar();
+      onEarnStar(`pilah:${currentPilahWord.id}`);
       setPilahFeedback({
         isCorrect: true,
         message: `Bener banget! ${currentPilahWord.hint}`
@@ -121,7 +112,7 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar, onBack }
       if (resultWord.toLowerCase() === currentSukuGame.word.toLowerCase()) {
         playCorrect();
         setSukuScore((prev) => prev + 1);
-        onEarnStar();
+        onEarnStar(`suku:${currentSukuGame.id}`);
         setSukuFeedback({
           isCorrect: true,
           message: `Mantap! "${resultWord}" iku tembung sing bener. (${currentSukuGame.meaning})`
@@ -139,7 +130,7 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar, onBack }
 
   const handleResetCurrentSuku = () => {
     playClick();
-    const shuffled = [...currentSukuGame.chunks].sort(() => Math.random() - 0.5);
+    const shuffled = shuffledChunks(currentSukuGame.chunks);
     setAvailableChunks(shuffled);
     setAssembledChunks([]);
     setSukuFeedback(null);
@@ -160,6 +151,8 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar, onBack }
     setSukuFeedback(null);
     if (sukuIndex + 1 < SUKU_KATA_GAMES.length) {
       setSukuIndex((prev) => prev + 1);
+      setAvailableChunks(shuffledChunks(SUKU_KATA_GAMES[sukuIndex + 1].chunks));
+      setAssembledChunks([]);
     } else {
       setSukuCompleted(true);
       playFanfare();
@@ -170,6 +163,9 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar, onBack }
   const handleResetSukuAll = () => {
     playClick();
     setSukuIndex(0);
+    setAvailableChunks(shuffledChunks(SUKU_KATA_GAMES[0].chunks));
+    setAssembledChunks([]);
+    setSukuFeedback(null);
     setSukuScore(0);
     setSukuCompleted(false);
   };
@@ -184,7 +180,7 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onEarnStar, onBack }
     if (chosen.isCorrect) {
       playCorrect();
       setDialogScore((prev) => prev + 1);
-      onEarnStar();
+      onEarnStar(`dialog:${currentDialog.id}`);
     } else {
       playWrong();
     }

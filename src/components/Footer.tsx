@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Sparkles, Heart } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { playClick } from '../lib/sound';
 
 interface FooterProps {
@@ -63,7 +63,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab, onResetProgress })
         </div>
 
         {/* Javanese Wisdom Banner */}
-        <div className="p-6 rounded-2xl bg-white dark:bg-slate-850/50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+        <div className="p-6 rounded-2xl bg-white dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
           <div className="space-y-1">
             <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-600 dark:text-emerald-400">
               Paribasan Jawa Luhur
@@ -85,7 +85,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab, onResetProgress })
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 text-[11px] text-slate-400 dark:text-slate-500">
           <p className="text-center sm:text-left">
-            © {new Date().getFullYear()} Sinau Basa Jawa Kelas 3 SD. Adhedhasar Standar Kurikulum Muatan Lokal Jawa Tengah & D.I. Yogyakarta.
+            © {new Date().getFullYear()} Sinau Basa Jawa Kelas 3 SD. Materi latihan mandiri; cocogna isi lan lafal karo guru Basa Jawa.
           </p>
           {onResetProgress && (
             <button

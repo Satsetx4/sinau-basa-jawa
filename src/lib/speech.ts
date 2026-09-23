@@ -1,6 +1,8 @@
-// Helper for clear Speech Synthesis of Javanese/Indonesian pronunciation
+import { getMuted } from './sound';
+
+// Browser TTS is a listening aid, not a verified Javanese pronunciation model.
 export const speakText = (text: string, lang = 'id-ID') => {
-  if (typeof window === 'undefined' || !window.speechSynthesis) return;
+  if (typeof window === 'undefined' || !window.speechSynthesis || getMuted()) return;
 
   try {
     window.speechSynthesis.cancel();

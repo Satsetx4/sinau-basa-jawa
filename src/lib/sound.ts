@@ -1,13 +1,18 @@
 import { safeStorage, STORAGE_KEYS } from './storage';
 
 let audioCtx: AudioContext | null = null;
+let memoryMuted: boolean | null = null;
 
 export const setMuted = (muted: boolean) => {
+  memoryMuted = muted;
   safeStorage.setItem(STORAGE_KEYS.SOUND_MUTED, muted ? 'true' : 'false');
+  if (muted && typeof window !== 'undefined' && window.speechSynthesis) {
+    try { window.speechSynthesis.cancel(); } catch { /* Speech may be unavailable in restricted browsers. */ }
+  }
 };
 
 export const getMuted = (): boolean => {
-  return safeStorage.getItem(STORAGE_KEYS.SOUND_MUTED) === 'true';
+  return memoryMuted ?? safeStorage.getItem(STORAGE_KEYS.SOUND_MUTED) === 'true';
 };
 
 const getAudioContext = (): AudioContext | null => {

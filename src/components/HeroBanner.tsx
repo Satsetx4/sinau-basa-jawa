@@ -5,20 +5,21 @@ import { speakText } from '../lib/speech';
 
 interface HeroBannerProps {
   setActiveTab: (tab: string) => void;
+  onOpenTopic: (topicId: string) => void;
   studentName: string;
   onOpenNameModal?: () => void;
 }
 
-export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, studentName, onOpenNameModal }) => {
+export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, onOpenTopic, studentName, onOpenNameModal }) => {
   const hasName = Boolean(studentName && studentName.trim());
   const displayName = hasName ? studentName.trim() : '';
 
   const handleTeacherGreeting = () => {
     playClick();
     if (hasName) {
-      speakText(`Sugeng rawuh ${displayName}! Ayo sinau basa Jawa bareng Bu Guru Siti kanthi bungah lan teliti!`);
+      speakText(`Sugeng rawuh ${displayName}! Ayo sinau basa Jawa kanthi bungah lan teliti!`);
     } else {
-      speakText('Sugeng rawuh! Ayo sinau basa Jawa bareng Bu Guru Siti kanthi bungah lan teliti!');
+      speakText('Sugeng rawuh! Ayo sinau basa Jawa kanthi bungah lan teliti!');
     }
   };
 
@@ -85,7 +86,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, studentNam
               <div className="space-y-1 flex-1">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-heading font-bold text-emerald-700 dark:text-emerald-300">
-                    Pesen Bu Guru Siti
+                    Pesen Pasinaon
                   </span>
                   <button
                     onClick={handleTeacherGreeting}
@@ -104,7 +105,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, studentNam
             {/* Quick Action Navigation Buttons */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
-                onClick={() => { setActiveTab('materi'); playClick(); }}
+                onClick={() => { onOpenTopic('swara-a'); playClick(); }}
                 className="px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-heading font-bold text-sm shadow-lg shadow-emerald-600/30 flex items-center gap-2 transform active:scale-95 transition-all"
               >
                 <BookOpen className="w-4 h-4" />
@@ -133,8 +134,8 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, studentNam
           {/* Right Feature Showcase Card / Visual Grid */}
           <div className="lg:col-span-5 grid grid-cols-2 gap-3.5">
             {/* Feature 1: Swara A */}
-            <div
-              onClick={() => { setActiveTab('materi'); playClick(); }}
+            <button type="button"
+              onClick={() => { onOpenTopic('swara-a'); playClick(); }}
               className="p-4 rounded-3xl bg-gradient-to-br from-emerald-500/10 to-teal-500/5 dark:from-emerald-500/15 dark:to-teal-500/10 border border-emerald-500/30 hover:border-emerald-500 hover:scale-105 transition-all duration-300 cursor-pointer shadow-sm text-left group"
             >
               <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-heading font-bold text-lg mb-2.5 shadow-md shadow-emerald-500/30">
@@ -146,11 +147,11 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, studentNam
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Sega [sego] vs Bapak [bapak]. Rumus gampang & audio cetha!
               </p>
-            </div>
+            </button>
 
             {/* Feature 2: Ngoko vs Krama */}
-            <div
-              onClick={() => { setActiveTab('materi'); playClick(); }}
+            <button type="button"
+              onClick={() => { onOpenTopic('ngoko-krama'); playClick(); }}
               className="p-4 rounded-3xl bg-gradient-to-br from-indigo-500/10 to-purple-500/5 dark:from-indigo-500/15 dark:to-purple-500/10 border border-indigo-500/30 hover:border-indigo-500 hover:scale-105 transition-all duration-300 cursor-pointer shadow-sm text-left group"
             >
               <div className="w-10 h-10 rounded-2xl bg-indigo-500 text-white flex items-center justify-center font-heading font-bold text-lg mb-2.5 shadow-md shadow-indigo-500/30">
@@ -162,11 +163,11 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, studentNam
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Kanca sebaya vs Guru & Simbah. Unggah-ungguh sopan santun.
               </p>
-            </div>
+            </button>
 
             {/* Feature 3: Konsonan TH & DH */}
-            <div
-              onClick={() => { setActiveTab('materi'); playClick(); }}
+            <button type="button"
+              onClick={() => { onOpenTopic('konsonan-th-dh'); playClick(); }}
               className="p-4 rounded-3xl bg-gradient-to-br from-rose-500/10 to-amber-500/5 dark:from-rose-500/15 dark:to-amber-500/10 border border-rose-500/30 hover:border-rose-500 hover:scale-105 transition-all duration-300 cursor-pointer shadow-sm text-left group"
             >
               <div className="w-10 h-10 rounded-2xl bg-rose-500 text-white flex items-center justify-center font-heading font-bold text-xs mb-2.5 shadow-md shadow-rose-500/30">
@@ -178,10 +179,10 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, studentNam
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Thukul vs Dhahar. Aja nganti kleru artikulasi swarane!
               </p>
-            </div>
+            </button>
 
             {/* Feature 4: Anggota Awak */}
-            <div
+            <button type="button"
               onClick={() => { setActiveTab('awak'); playClick(); }}
               className="p-4 rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/5 dark:from-purple-500/15 dark:to-pink-500/10 border border-purple-500/30 hover:border-purple-500 hover:scale-105 transition-all duration-300 cursor-pointer shadow-sm text-left group"
             >
@@ -194,7 +195,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, studentNam
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Sirah-mustaka, mripat-paningal, kuping-talingan, tangan-asta.
               </p>
-            </div>
+            </button>
           </div>
         </div>
       </div>

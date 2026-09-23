@@ -7,7 +7,12 @@ export const STORAGE_KEYS = {
   STUDENT_NAME: 'sinau_jawa_student_name',
   STARS: 'sinau_jawa_stars',
   LAST_EXAM_SCORE: 'sinau_jawa_last_exam_score',
+  EXAM_RESULT: 'sinau_jawa_exam_result_v1',
   COMPLETED_TOPICS: 'sinau_jawa_completed_topics',
+  ACHIEVEMENTS: 'sinau_jawa_achievements_v1',
+  ACTIVE_TAB: 'sinau_jawa_active_tab_v1',
+  ACTIVE_TOPIC: 'sinau_jawa_active_topic_v1',
+  QUIZ_DRAFT: 'sinau_jawa_quiz_draft_v1',
   SOUND_MUTED: 'sinau_basa_jawa_sound_muted',
 } as const;
 
@@ -39,15 +44,8 @@ export const safeStorage = {
     }
   },
   clearAllProgress: (): void => {
-    try {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem(STORAGE_KEYS.STUDENT_NAME);
-        localStorage.removeItem(STORAGE_KEYS.STARS);
-        localStorage.removeItem(STORAGE_KEYS.LAST_EXAM_SCORE);
-        localStorage.removeItem(STORAGE_KEYS.COMPLETED_TOPICS);
-      }
-    } catch (e) {
-      console.warn('safeStorage.clearAllProgress error:', e);
-    }
+    Object.values(STORAGE_KEYS)
+      .filter(key => key !== STORAGE_KEYS.DARK_MODE && key !== STORAGE_KEYS.SOUND_MUTED)
+      .forEach(key => safeStorage.removeItem(key));
   },
 };

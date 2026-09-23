@@ -37,7 +37,7 @@ export const PILAH_WORDS: PilahWord[] = [
   { id: '6', word: 'sawah', category: 'miring', spokenText: 'sawah', hint: 'Diwaca tetep "sawah" (muni a) -> Swara A Miring' },
   { id: '7', word: 'kanca', category: 'jejeg', spokenText: 'konco', hint: 'Diwaca "konco" (muni o) -> Swara A Jejeg' },
   { id: '8', word: 'manuk', category: 'miring', spokenText: 'manuk', hint: 'Diwaca tetep "manuk" (muni a) -> Swara A Miring' },
-  { id: '9', word: 'toko', category: 'jejeg', spokenText: 'toko', hint: 'Diwaca tetep "toko" (muni o) -> Swara A Jejeg' },
+  { id: '9', word: 'bata', category: 'jejeg', spokenText: 'boto', hint: 'Diwaca "boto" (muni o) -> Swara A Jejeg' },
   { id: '10', word: 'pasar', category: 'miring', spokenText: 'pasar', hint: 'Diwaca tetep "pasar" (muni a) -> Swara A Miring' },
   { id: '11', word: 'bata', category: 'jejeg', spokenText: 'boto', hint: 'Diwaca "boto" (muni o) -> Swara A Jejeg' },
   { id: '12', word: 'macan', category: 'miring', spokenText: 'macan', hint: 'Diwaca tetep "macan" (muni a) -> Swara A Miring' }
@@ -57,9 +57,9 @@ export const SUKU_KATA_GAMES: SukuKataItem[] = [
 export const SCENARIO_DIALOGS: ScenarioDialog[] = [
   {
     id: 1,
-    characterName: 'Bu Guru Siti',
+    characterName: 'Bu Guru',
     characterRole: 'Guru',
-    situation: 'Kowe ketemu Bu Guru Siti ing ngarep gapura sekolahan nalika tabuh pitu esuk sadurunge bel muni.',
+    situation: 'Kowe ketemu Bu Guru ing ngarep gapura sekolahan nalika tabuh pitu esuk sadurunge bel muni.',
     question: 'Kepriye atur salammu sing paling sopan lan trep miturut unggah-ungguh basa Jawa?',
     options: [
       {

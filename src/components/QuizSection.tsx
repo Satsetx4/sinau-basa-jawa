@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { BANK_SOAL, QuestionItem } from '../data/bankSoalData';
+import React, { useState, useEffect, useCallback } from 'react';
+import { BANK_SOAL } from '../data/bankSoalData';
 import {
   Award,
   CheckCircle2,
   XCircle,
   Volume2,
-  Sparkles,
   RefreshCw,
   Clock,
   ArrowRight,
@@ -22,14 +21,18 @@ import {
 import { playClick, playCorrect, playWrong, playFanfare } from '../lib/sound';
 import { speakText } from '../lib/speech';
 import confetti from 'canvas-confetti';
+import { assessmentMode, calculateResult, ExamResult, isCertificateEligible } from '../domain/assessment';
+import { useDialogFocus } from '../hooks/useDialogFocus';
+import { safeStorage, STORAGE_KEYS } from '../lib/storage';
+import { parseQuizDraft } from '../domain/quizDraft';
 
 interface QuizSectionProps {
   studentName: string;
-  onOpenCertificate: (score: number) => void;
-  onEarnStar: () => void;
+  onOpenCertificate: () => void;
+  onEarnStar: (id: string) => void;
   initialTopicFilter?: string | null;
-  lastExamScore?: number | null;
-  onSaveExamScore?: (score: number) => void;
+  lastExamResult?: ExamResult | null;
+  onSaveExamResult?: (result: ExamResult) => void;
   onBack?: () => void;
   onOpenNameModal?: () => void;
 }
@@ -39,59 +42,53 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
   onOpenCertificate,
   onEarnStar,
   initialTopicFilter = null,
-  lastExamScore = null,
-  onSaveExamScore,
+  lastExamResult = null,
+  onSaveExamResult,
   onBack,
   onOpenNameModal
 }) => {
-  const [quizMode, setQuizMode] = useState<'latihan' | 'ujian'>('latihan');
-  const [selectedTopic, setSelectedTopic] = useState<string>(initialTopicFilter || 'all');
+  const [draft] = useState(() => initialTopicFilter ? null : parseQuizDraft(safeStorage.getItem(STORAGE_KEYS.QUIZ_DRAFT)));
+  const [quizMode, setQuizMode] = useState<'latihan' | 'ujian'>(draft?.mode || 'latihan');
+  const [selectedTopic, setSelectedTopic] = useState<string>(initialTopicFilter || draft?.topicId || 'all');
 
   // Filtered question pool
   const filteredQuestions = BANK_SOAL.filter(
     (q) => selectedTopic === 'all' || q.topicId === selectedTopic
   );
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: number }>({});
+  const [currentIndex, setCurrentIndex] = useState(draft?.currentIndex || 0);
+  const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: number }>(draft?.answers || {});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
+  const confirmDialogRef = useDialogFocus(showConfirmSubmit, () => setShowConfirmSubmit(false));
+  const [submittedResult, setSubmittedResult] = useState<ExamResult | null>(null);
 
   // Timer for Ujian mode
-  const [timerSeconds, setTimerSeconds] = useState(900); // 15 minutes
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [deadlineAt, setDeadlineAt] = useState<number | null>(draft?.deadlineAt || null);
+  const [timerSeconds, setTimerSeconds] = useState(() => draft?.deadlineAt ? Math.max(0, Math.ceil((draft.deadlineAt - Date.now()) / 1000)) : 900);
+  const [isTimerRunning, setIsTimerRunning] = useState(draft?.mode === 'ujian');
 
   const answeredCount = filteredQuestions.filter((q) => selectedAnswers[q.id] !== undefined).length;
   const unansweredCount = filteredQuestions.length - answeredCount;
 
-  // Sync initial topic filter if changed from parent
-  useEffect(() => {
-    if (initialTopicFilter) {
-      setSelectedTopic(initialTopicFilter);
-      setCurrentIndex(0);
-      setSelectedAnswers({});
-      setIsSubmitted(false);
-    }
-  }, [initialTopicFilter]);
-
   // Timer countdown
   useEffect(() => {
-    let interval: any = null;
-    if (quizMode === 'ujian' && isTimerRunning && !isSubmitted && timerSeconds > 0) {
+    let interval: ReturnType<typeof setInterval> | null = null;
+    if (quizMode === 'ujian' && isTimerRunning && !isSubmitted && timerSeconds > 0 && deadlineAt) {
       interval = setInterval(() => {
-        setTimerSeconds((prev) => {
-          if (prev <= 1) {
-            handleSubmitExam();
-            return 0;
-          }
-          return prev - 1;
-        });
+        setTimerSeconds(Math.max(0, Math.ceil((deadlineAt - Date.now()) / 1000)));
       }, 1000);
     }
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [quizMode, isTimerRunning, isSubmitted, timerSeconds]);
+  }, [quizMode, isTimerRunning, isSubmitted, timerSeconds, deadlineAt]);
+
+  useEffect(() => {
+    if (isSubmitted) { safeStorage.removeItem(STORAGE_KEYS.QUIZ_DRAFT); return; }
+    safeStorage.setItem(STORAGE_KEYS.QUIZ_DRAFT, JSON.stringify({ version: 1, mode: quizMode,
+      topicId: selectedTopic, currentIndex, answers: selectedAnswers, deadlineAt }));
+  }, [isSubmitted, quizMode, selectedTopic, currentIndex, selectedAnswers, deadlineAt]);
 
   const currentQuestion = filteredQuestions[currentIndex] || filteredQuestions[0];
   const userChoice = selectedAnswers[currentQuestion?.id];
@@ -110,7 +107,7 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
       const isCorrect = optIdx === currentQuestion.correctAnswer;
       if (isCorrect) {
         playCorrect();
-        onEarnStar();
+        onEarnStar(`question:${currentQuestion.id}`);
       } else {
         playWrong();
       }
@@ -131,30 +128,28 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
     }
   };
 
-  const handleSubmitExam = () => {
+  const handleSubmitExam = useCallback(() => {
+    if (isSubmitted || !filteredQuestions.length) return;
     setIsSubmitted(true);
     setIsTimerRunning(false);
+    const result = calculateResult(filteredQuestions, selectedAnswers,
+      assessmentMode(quizMode, selectedTopic), selectedTopic === 'all' ? null : selectedTopic);
+    setSubmittedResult(result);
+    if (result.mode === 'exam') onSaveExamResult?.(result);
 
-    // Calculate score
-    let correctCount = 0;
-    filteredQuestions.forEach((q) => {
-      if (selectedAnswers[q.id] === q.correctAnswer) {
-        correctCount++;
-      }
-    });
-
-    const finalScore = Math.round((correctCount / filteredQuestions.length) * 100);
-    if (onSaveExamScore) {
-      onSaveExamScore(finalScore);
-    }
-
-    if (finalScore >= 70) {
+    if (result.passed) {
       playFanfare();
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
     } else {
       playCorrect();
     }
-  };
+  }, [isSubmitted, filteredQuestions, selectedAnswers, quizMode, selectedTopic, onSaveExamResult, setIsSubmitted, setIsTimerRunning, setSubmittedResult]);
+
+  useEffect(() => {
+    if (quizMode !== 'ujian' || !isTimerRunning || timerSeconds !== 0 || isSubmitted) return;
+    const timeout = window.setTimeout(() => handleSubmitExam(), 0);
+    return () => window.clearTimeout(timeout);
+  }, [timerSeconds, quizMode, isTimerRunning, isSubmitted, handleSubmitExam]);
 
   const handleAttemptSubmit = () => {
     playClick();
@@ -165,26 +160,23 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
     }
   };
 
-  const handleResetQuiz = () => {
+  const handleResetQuiz = (nextMode = quizMode) => {
     playClick();
     setCurrentIndex(0);
     setSelectedAnswers({});
     setIsSubmitted(false);
+    setSubmittedResult(null);
+    setShowConfirmSubmit(false);
     setTimerSeconds(900);
-    if (quizMode === 'ujian') {
-      setIsTimerRunning(true);
-    }
+    const nextDeadline = nextMode === 'ujian' ? Date.now() + 900000 : null;
+    setDeadlineAt(nextDeadline);
+    setIsTimerRunning(nextMode === 'ujian');
   };
 
   const calculateResults = () => {
-    let correct = 0;
-    filteredQuestions.forEach((q) => {
-      if (selectedAnswers[q.id] === q.correctAnswer) {
-        correct++;
-      }
-    });
-    const percentage = Math.round((correct / filteredQuestions.length) * 100) || 0;
-    return { correct, total: filteredQuestions.length, percentage };
+    const result = submittedResult || calculateResult(filteredQuestions, selectedAnswers,
+      assessmentMode(quizMode, selectedTopic), selectedTopic === 'all' ? null : selectedTopic);
+    return { correct: result.correctAnswers, total: result.totalQuestions, percentage: result.score };
   };
 
   const results = calculateResults();
@@ -231,7 +223,7 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-heading font-semibold mb-2">
             <Award className="w-3.5 h-3.5" />
-            <span>Bank Soal Standar Kurikulum Basa Jawa Kelas 3 SD</span>
+            <span>Bank Soal Pasinaon Basa Jawa Kelas 3 SD</span>
           </div>
           <h2 className="font-heading font-bold text-2xl sm:text-3xl text-slate-900 dark:text-white">
             Ujian & Gladhen Soal kanthi Pembahasan
@@ -247,7 +239,7 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
           <button
             onClick={() => {
               setQuizMode('latihan');
-              handleResetQuiz();
+              handleResetQuiz('latihan');
             }}
             className={`px-3.5 py-2 rounded-xl text-xs font-heading font-bold transition-all flex items-center gap-1.5 min-h-[40px] cursor-pointer ${
               quizMode === 'latihan'
@@ -261,8 +253,7 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
           <button
             onClick={() => {
               setQuizMode('ujian');
-              setIsTimerRunning(true);
-              handleResetQuiz();
+              handleResetQuiz('ujian');
             }}
             className={`px-3.5 py-2 rounded-xl text-xs font-heading font-bold transition-all flex items-center gap-1.5 min-h-[40px] cursor-pointer ${
               quizMode === 'ujian'
@@ -271,24 +262,24 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
-            <span>Mode Penilaian Harian</span>
+            <span>Mode Ujian Latihan</span>
           </button>
         </div>
       </div>
 
       {/* Last Exam Score Banner (if already taken exam before) */}
-      {lastExamScore !== null && !isSubmitted && (
+      {lastExamResult && !isSubmitted && (
         <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left animate-fade-in">
           <div className="flex items-center gap-2 text-xs font-heading font-semibold text-amber-900 dark:text-amber-200">
             <Trophy className="w-4 h-4 text-amber-500 shrink-0" />
-            <span>Biji Ujian Penilaian Harian Paling Anyar:</span>
-            <span className="font-bold text-base text-amber-600 dark:text-amber-400">{lastExamScore}/100</span>
+            <span>Biji Ujian Lengkap Paling Anyar:</span>
+            <span className="font-bold text-base text-amber-600 dark:text-amber-400">{lastExamResult.score}/100</span>
           </div>
           <button
-            onClick={() => onOpenCertificate(lastExamScore)}
+            onClick={isCertificateEligible(lastExamResult, BANK_SOAL.length) ? onOpenCertificate : () => { setSelectedTopic('all'); setQuizMode('ujian'); handleResetQuiz('ujian'); }}
             className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-heading font-bold text-xs shadow-sm active:scale-95 transition-all cursor-pointer shrink-0"
           >
-            Deleng / Cetak Sertifikat ➔
+            {isCertificateEligible(lastExamResult, BANK_SOAL.length) ? 'Deleng / Cetak Piagam ➔' : 'Baleni Ujian Lengkap ➔'}
           </button>
         </div>
       )}
@@ -305,6 +296,10 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
                 setCurrentIndex(0);
                 setSelectedAnswers({});
                 setIsSubmitted(false);
+                setSubmittedResult(null);
+                setTimerSeconds(900);
+                setDeadlineAt(quizMode === 'ujian' ? Date.now() + 900000 : null);
+                setIsTimerRunning(quizMode === 'ujian');
                 playClick();
               }}
               className={`px-3 py-1.5 rounded-xl text-xs font-heading font-semibold whitespace-nowrap border transition-all ${
@@ -334,7 +329,7 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
 
             <div>
               <span className="text-xs uppercase font-bold tracking-widest text-emerald-600 dark:text-emerald-400">
-                Rapor Penilaian Harian Basa Jawa
+                {submittedResult?.mode === 'exam' ? 'Hasil Ujian Lengkap Basa Jawa' : submittedResult?.mode === 'topicQuiz' ? 'Hasil Kuis Topik' : 'Hasil Latihan'}
               </span>
               <h3 className="font-heading font-bold text-3xl sm:text-4xl text-slate-900 dark:text-white mt-1">
                 {results.percentage >= 80 ? 'Pinter Banget, Bocah Hebat!' : results.percentage >= 60 ? 'Bagus! Terus Sinau ya!' : 'Ayo Semangat Sinau Maneh!'}
@@ -395,34 +390,34 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
               </div>
               <div className="space-y-1">
                 <h4 className="font-heading font-bold text-xs sm:text-sm text-amber-900 dark:text-amber-200">
-                  Cathetan Evaluasi saka Bu Guru Siti:
+                  Cathetan Pasinaon:
                 </h4>
                 <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-300 leading-relaxed font-sans">
                   {results.percentage >= 80
                     ? `Selamat ya${studentName.trim() ? ` ${studentName.trim()}` : ''}! Kowe wis wasis banget babagan Swara A Jejeg, Unggah-Ungguh Krama, lan Jeneng Anggota Awak. Pertahankan prestasimu!`
                     : results.percentage >= 60
                     ? `Wis apik${studentName.trim() ? ` ${studentName.trim()}` : ''}, nanging kudu luwih teliti maneh mbedakake Swara A Jejeg/Miring lan Konsonan TH/DH ya. Ayo gladhen maneh!`
-                    : `Ora apa-apa${studentName.trim() ? ` ${studentName.trim()}` : ''}, sinau iku proses. Wacanen materi ing Bab 1 nganti 6 lan gatekna pituduh Bu Guru, mesthi sesuk entuk nilai 100!`}
+                    : `Ora apa-apa${studentName.trim() ? ` ${studentName.trim()}` : ''}, sinau iku proses. Wacanen materi ing Bab 1 nganti 6 lan gladhen maneh.`}
                 </p>
               </div>
             </div>
 
             {/* Action Buttons: Certificate, Retry, and Wayfinding Back */}
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-              <button
-                onClick={() => onOpenCertificate(results.percentage)}
+              {submittedResult && isCertificateEligible(submittedResult, BANK_SOAL.length) && <button
+                onClick={onOpenCertificate}
                 className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-heading font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center gap-2 active:scale-95 transition-all min-h-[46px]"
               >
                 <Printer className="w-4 h-4" />
-                Cetak Sertifikat Siswa
-              </button>
+                Cetak Piagam Latihan
+              </button>}
 
               <button
-                onClick={handleResetQuiz}
+                onClick={() => handleResetQuiz()}
                 className="px-5 py-3.5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-heading font-bold text-sm shadow-md flex items-center gap-2 active:scale-95 transition-all min-h-[46px]"
               >
                 <RefreshCw className="w-4 h-4" />
-                Ulangi Ujian
+                Ulangi {quizMode === 'ujian' ? 'Ujian' : 'Latihan'}
               </button>
 
               {onBack && (
@@ -495,7 +490,7 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
                                 ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-500 text-emerald-900 dark:text-emerald-200 font-bold'
                                 : isChosen
                                 ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-500 text-rose-900 dark:text-rose-200 font-medium'
-                                : 'bg-slate-50 dark:bg-slate-750/30 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                                : 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
                             }`}
                           >
                             <span>
@@ -511,7 +506,7 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
                     {/* Detailed Pedagogical Explanation */}
                     <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/60 space-y-1">
                       <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 block">
-                        💡 Pembahasan Guru SD:
+                        💡 Pembahasan Soal:
                       </span>
                       <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans">
                         {q.explanation}
@@ -676,7 +671,7 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
 
             {/* Instant Pedagogical Explanation (In Study Mode when Answered) */}
             {quizMode === 'latihan' && hasAnsweredCurrent && (
-              <div
+              <div role="status" aria-live="polite"
                 className={`p-5 rounded-2xl border space-y-2 animate-fade-in ${
                   userChoice === currentQuestion.correctAnswer
                     ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 text-emerald-900 dark:text-emerald-200'
@@ -686,7 +681,7 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-heading font-bold uppercase tracking-wider flex items-center gap-1.5">
                     <Lightbulb className="w-4 h-4 text-amber-500" />
-                    Pembahasan Guru SD:
+                    Pembahasan Soal:
                   </span>
                   <button
                     onClick={() => speakText(currentQuestion.explanation)}
@@ -731,7 +726,7 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
                   className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-heading font-bold text-xs shadow-md shadow-amber-500/30 active:scale-95 transition-all flex items-center gap-2 cursor-pointer min-h-[44px]"
                 >
                   <Award className="w-4 h-4" />
-                  <span>Kirim & Deleng Rapor</span>
+                  <span>Kirim & Deleng Hasil</span>
                 </button>
               )}
             </div>
@@ -742,11 +737,11 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
       {/* Unanswered Questions Confirmation Modal */}
       {showConfirmSubmit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl border border-amber-500/40 space-y-4 text-center">
+          <div ref={confirmDialogRef} role="alertdialog" aria-modal="true" aria-labelledby="confirm-submit-title" tabIndex={-1} className="w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl border border-amber-500/40 space-y-4 text-center">
             <div className="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 mx-auto flex items-center justify-center shadow-inner">
               <AlertTriangle className="w-8 h-8" />
             </div>
-            <h4 className="font-heading font-bold text-xl text-slate-900 dark:text-white">
+            <h4 id="confirm-submit-title" className="font-heading font-bold text-xl text-slate-900 dark:text-white">
               Isih Ana Soal Sing Durung Diisi!
             </h4>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-sans leading-relaxed">
@@ -766,7 +761,7 @@ export const QuizSection: React.FC<QuizSectionProps> = ({
                 }}
                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-heading font-bold text-xs shadow-md shadow-amber-500/30 transition-all cursor-pointer"
               >
-                Tetep Kirim Rapor
+                Tetep Kirim Jawaban
               </button>
             </div>
           </div>
