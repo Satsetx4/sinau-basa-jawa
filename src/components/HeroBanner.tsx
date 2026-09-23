@@ -24,21 +24,21 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, onOpenTopi
   };
 
   return (
-    <section className="relative overflow-hidden pt-8 pb-10">
+    <section className="relative overflow-hidden pt-5 pb-6 sm:pt-8 sm:pb-10">
       {/* Background soft decorative ambient glow */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-400/10 dark:bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute top-10 right-1/4 w-80 h-80 bg-amber-400/10 dark:bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-8 items-center">
           {/* Main Left Intro Text */}
-          <div className="lg:col-span-7 space-y-5 text-left">
+          <div className="lg:col-span-7 space-y-4 sm:space-y-5 text-left">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-heading font-semibold shadow-sm">
               <Sparkles className="w-3.5 h-3.5 text-emerald-500 animate-spin" style={{ animationDuration: '6s' }} />
               <span>Wulangan Basa Jawa Kelas 3 SD • Nyimak Swara & Unggah-Ungguh</span>
             </div>
 
-            <h1 className="font-heading font-bold text-3xl sm:text-4xl md:text-5xl text-slate-900 dark:text-white tracking-tight leading-[1.15]">
+            <h1 className="font-heading font-bold text-2xl sm:text-4xl md:text-5xl text-slate-900 dark:text-white tracking-tight leading-[1.15]">
               Sinau Basa Jawa Dadi{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-500 to-amber-500">
                 Gampang, Seru, & Berprestasi!
@@ -103,10 +103,10 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, onOpenTopi
             </div>
 
             {/* Quick Action Navigation Buttons */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-1 sm:pt-2">
               <button
                 onClick={() => { onOpenTopic('swara-a'); playClick(); }}
-                className="px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-heading font-bold text-sm shadow-lg shadow-emerald-600/30 flex items-center gap-2 transform active:scale-95 transition-all"
+                className="min-h-11 px-4 py-3 sm:px-6 sm:py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-heading font-bold text-sm shadow-lg shadow-emerald-600/30 flex items-center gap-2 transform active:scale-95 transition-all"
               >
                 <BookOpen className="w-4 h-4" />
                 Mulai Sinau Materi
@@ -115,7 +115,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, onOpenTopi
 
               <button
                 onClick={() => { setActiveTab('soal'); playClick(); }}
-                className="px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-heading font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center gap-2 transform active:scale-95 transition-all"
+                className="min-h-11 px-4 py-3 sm:px-6 sm:py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-heading font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center gap-2 transform active:scale-95 transition-all"
               >
                 <Award className="w-4 h-4" />
                 Bank Soal & Ujian (20 Soal)
@@ -123,7 +123,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ setActiveTab, onOpenTopi
 
               <button
                 onClick={() => { setActiveTab('awak'); playClick(); }}
-                className="px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 font-heading font-semibold text-sm flex items-center gap-2 transform active:scale-95 transition-all shadow-sm"
+                className="min-h-11 px-4 py-3 sm:px-5 sm:py-3 rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 font-heading font-semibold text-sm flex items-center gap-2 transform active:scale-95 transition-all shadow-sm"
               >
                 <Sparkles className="w-4 h-4 text-purple-500" />
                 Wayang Awak Interaktif

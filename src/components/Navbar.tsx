@@ -47,7 +47,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 backdrop-blur-md bg-[#fcfaf7]/90 dark:bg-[#0b0f19]/90 border-b border-emerald-900/10 dark:border-emerald-500/15 transition-colors duration-300">
+    <>
+      <header className="sticky top-0 z-40 backdrop-blur-md bg-[#fcfaf7]/90 dark:bg-[#0b0f19]/90 border-b border-emerald-900/10 dark:border-emerald-500/15 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between min-h-16 sm:h-20 gap-2 sm:gap-4">
           {/* Brand Logo */}
@@ -182,6 +183,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
+      </header>
+
       {/* Docked Mobile Bottom Navigation Bar (Thumb-Zone Friendly) */}
       <nav
         aria-label="Navigasi Utama Ponsel"
@@ -211,6 +214,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           );
         })}
       </nav>
-    </header>
+    </>
   );
 };
